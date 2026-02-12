@@ -1,0 +1,74 @@
+---
+layout: none
+---
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MF-PAY MAXIMUS</title>
+  <style>
+    :root{--bg:#0a0a0c;--neon:#00d2ff;--txt:#dff9ff}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#121826,#0a0a0c);font-family:Inter,Arial,sans-serif;color:var(--txt);padding:20px}
+    .wrap{max-width:980px;margin:0 auto}
+    .card{border:1px solid #00d2ff55;background:rgba(255,255,255,.08);backdrop-filter:blur(12px);padding:16px;border-radius:14px;margin-bottom:12px}
+    h1{color:var(--neon);text-shadow:0 0 12px #00d2ff;margin:0 0 10px}
+    input,button{width:100%;padding:10px;border-radius:10px;border:1px solid #00d2ff66;background:#0f1624;color:#dff9ff;margin-top:8px}
+    button{cursor:pointer;background:linear-gradient(90deg,#00b3e6,#00d2ff);color:#05121a;font-weight:700}
+    .small{opacity:.8;font-size:.9rem}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>MF-PAY</h1>
+    <div class="card">
+      <div>Saldo disponível</div>
+      <h2 id="saldo"></h2>
+      <p class="small">Base local protegida (LocalStorage)</p>
+    </div>
+    <div class="card">
+      <div>Chave PIX</div>
+      <div id="pixKey" class="small"></div>
+      <button id="copyBtn">Copiar PIX</button>
+      <div id="msg" class="small"></div>
+    </div>
+  </div>
+
+<script>
+(()=>{
+  const S='mfpay_';
+
+  const gateToken='{{ site.access_token }}';
+  const secBlock=()=>{location.href='https://google.com';};
+  document.addEventListener('contextmenu',e=>e.preventDefault());
+  document.addEventListener('keydown',e=>{const k=e.key.toUpperCase();if(k==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(k))||(e.ctrlKey&&k==='U')){e.preventDefault();secBlock();}});
+  const triesKey=S+'tries';
+  const lockKey=S+'lock_until';
+  if(Number(localStorage.getItem(lockKey)||0)>Date.now()){document.body.innerHTML='<div class="wrap"><div class="card">Acesso bloqueado por segurança. Tente mais tarde.</div></div>';return;}
+  const urlToken=new URLSearchParams(location.search).get('token')||'';
+  if(urlToken!==gateToken){
+    const input=prompt('Token de acesso MF-PAY:','')||'';
+    if(input!==gateToken){
+      const t=Number(localStorage.getItem(triesKey)||0)+1;
+      localStorage.setItem(triesKey,String(t));
+      if(t>=3){localStorage.setItem(lockKey,String(Date.now()+24*60*60*1000));localStorage.setItem(triesKey,'0');}
+      document.body.innerHTML='<div class="wrap"><div class="card">Token inválido.</div></div>';
+      return;
+    }
+    localStorage.setItem(triesKey,'0');
+  }
+  const key='{{ site.pix_key }}';
+  const balKey=S+'balance';
+  if(localStorage.getItem(balKey)===null){localStorage.setItem(balKey,JSON.stringify(20000));}
+  const bal=JSON.parse(localStorage.getItem(balKey));
+  document.getElementById('saldo').textContent=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(bal);
+  document.getElementById('pixKey').textContent=key;
+  document.getElementById('copyBtn').onclick=async()=>{
+    try{await navigator.clipboard.writeText(key);document.getElementById('msg').textContent='Chave PIX copiada.';}
+    catch{document.getElementById('msg').textContent='Copie manualmente.';}
+  };
+})();
+</script>
+</body>
+</html>
