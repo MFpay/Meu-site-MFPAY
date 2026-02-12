@@ -1,0 +1,154 @@
+---
+layout: none
+---
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MF-PAY | PIX</title>
+    <style>
+      :root {
+        --bg: #050505;
+        --neon: #00d2ff;
+        --text: #dff9ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Inter", "Segoe UI", sans-serif;
+        background: radial-gradient(circle at 20% 20%, #06242d 0%, var(--bg) 45%),
+          linear-gradient(130deg, #050505 10%, #061b24 100%);
+        color: var(--text);
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .container {
+        width: min(960px, 100%);
+      }
+
+      .headline {
+        text-align: center;
+        margin-bottom: 28px;
+      }
+
+      .headline h1 {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 3rem);
+        letter-spacing: 1px;
+        color: var(--neon);
+        text-shadow: 0 0 16px rgba(0, 210, 255, 0.6);
+      }
+
+      .headline p {
+        margin: 10px 0 0;
+        opacity: 0.8;
+      }
+
+      .cards {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      }
+
+      .card {
+        position: relative;
+        border-radius: 18px;
+        border: 1px solid rgba(0, 210, 255, 0.26);
+        background: linear-gradient(
+          145deg,
+          rgba(255, 255, 255, 0.12),
+          rgba(255, 255, 255, 0.04)
+        );
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 22px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+          0 0 24px rgba(0, 210, 255, 0.15);
+      }
+
+      .card h2 {
+        margin: 0 0 12px;
+        font-size: 1.1rem;
+        color: var(--neon);
+      }
+
+      .value {
+        font-size: 1.02rem;
+        font-weight: 600;
+        word-break: break-word;
+      }
+
+      button {
+        margin-top: 16px;
+        width: 100%;
+        border: 0;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, #0088a7, var(--neon));
+        color: #00131a;
+        cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 0 16px rgba(0, 210, 255, 0.55);
+      }
+
+      .feedback {
+        margin-top: 8px;
+        font-size: 0.85rem;
+        min-height: 1em;
+        color: #9af1ff;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <section class="headline">
+        <h1>GATO // MF-PAY</h1>
+        <p>Painel de pagamento PIX com tema Dark Neon.</p>
+      </section>
+
+      <section class="cards">
+        <article class="card">
+          <h2>Nome do Recebedor</h2>
+          <div class="value">{{ site.pix_name }}</div>
+        </article>
+
+        <article class="card">
+          <h2>Chave PIX</h2>
+          <div class="value" id="pixKey">{{ site.pix_key }}</div>
+          <button id="copyButton" type="button">Copiar Chave PIX</button>
+          <div class="feedback" id="feedback"></div>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      const pixKey = "{{ site.pix_key }}";
+      const copyButton = document.getElementById("copyButton");
+      const feedback = document.getElementById("feedback");
+
+      copyButton.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(pixKey);
+          feedback.textContent = "Chave PIX copiada com sucesso!";
+        } catch (error) {
+          feedback.textContent = "Não foi possível copiar automaticamente.";
+        }
+      });
+    </script>
+  </body>
+</html>
