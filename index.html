@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>SISTEMA D20 - LOGIN</title>
+    <style>
+        body { background:#000; display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif; }
+        .box { background:#111; padding:40px; border:1px solid #0f0; text-align:center; box-shadow:0 0 20px #0f0; border-radius:10px; }
+        input { padding:12px; margin:10px 0; width:100%; background:#000; border:1px solid #0f0; color:#0f0; }
+        button { background:#0f0; color:#000; padding:12px; width:110%; border:none; cursor:pointer; font-weight:bold; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2 style="color:#0f0">MF-PAY BLACK OPS</h2>
+        <input type="password" id="tk" placeholder="Token de Acesso">
+        <button onclick="logar()">ACESSAR</button>
+    </div>
+    <script>
+        function logar() {
+            const val = document.getElementById('tk').value;
+            if(val === '2026_MASTER_MFPAY') window.location.href = 'admin.html';
+            else window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>
