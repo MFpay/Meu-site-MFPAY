@@ -3,79 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MFpay | Master Admin Radar</title>
+    <title>Master Radar | MFpay</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background: #000; color: #fff; font-family: sans-serif; }
-        .stat-card { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 24px; rounded: 24px; }
-    </style>
 </head>
-<body class="p-6 md:p-12">
-    
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <div class="stat-card border-l-4 border-[#80ff44]">
-            <p class="text-[10px] opacity-30 uppercase font-black">Faturamento Rede</p>
-            <h2 id="total-faturado" class="text-3xl font-black italic text-[#80ff44]">R$ 0,00</h2>
-        </div>
-        <div class="stat-card border-l-4 border-blue-500">
-            <p class="text-[10px] opacity-30 uppercase font-black">Pendentes Saque</p>
-            <h2 id="total-saques" class="text-3xl font-black italic text-blue-500">0</h2>
-        </div>
-        <div class="stat-card border-l-4 border-white/20">
-            <p class="text-[10px] opacity-30 uppercase font-black">Status de Rede</p>
-            <h2 class="text-3xl font-black italic">ESTÁVEL</h2>
-        </div>
+<body class="bg-black text-white p-10 font-sans">
+    <div class="flex justify-between items-center mb-16">
+        <h1 class="text-4xl font-black italic text-[#80ff44]">MASTER RADAR</h1>
+        <button onclick="saveWL()" class="bg-white text-black px-6 py-2 rounded-xl text-[10px] font-black uppercase">Configurar White Label</button>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        <div id="fila" class="space-y-4"></div>
-        <div id="inbox-mensagens" class="space-y-4"></div>
-    </div>
+    <div id="fila" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
 
-    <audio id="som-deposito" src="https://www.myinstants.com/media/sounds/cash-register-purchase.mp3"></audio>
-    <audio id="som-saque" src="https://www.myinstants.com/media/sounds/security-alert.mp3"></audio>
+    <div id="modal" onclick="this.style.display='none'" class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center p-10">
+        <img id="img-full" src="" class="max-w-full max-h-full rounded-2xl border border-white/10">
+    </div>
 
     <script>
         const API = 'https://sheetdb.io/api/v1/q28pv28d009pq';
-        let totalRegistrosAntigo = 0;
 
-        async function monitorar() {
+        async function carregar() {
             const res = await fetch(API);
             const dados = await res.json();
             const pendentes = dados.filter(i => i.status === 'Pendente');
 
-            // --- LÓGICA SONORA ---
-            if(pendentes.length > totalRegistrosAntigo) {
-                const ultima = pendentes[pendentes.length - 1];
-                if(ultima.tipo === 'DEPOSITO') document.getElementById('som-deposito').play();
-                if(ultima.tipo === 'SAQUE') document.getElementById('som-saque').play();
-            }
-            totalRegistrosAntigo = pendentes.length;
-
-            // --- ESTATÍSTICAS ---
-            const faturamento = dados.filter(i => i.status === 'Aprovado').reduce((acc, cur) => acc + parseFloat(cur.valor || 0), 0);
-            document.getElementById('total-faturado').innerText = `R$ ${faturamento.toLocaleString('pt-BR')}`;
-            document.getElementById('total-saques').innerText = pendentes.filter(i => i.tipo === 'SAQUE').length;
-
-            // Renderização da Fila...
-            document.getElementById('fila').innerHTML = pendentes.filter(i => i.tipo !== 'SUPORTE').map(p => `
-                <div class="stat-card flex justify-between items-center">
+            document.getElementById('fila').innerHTML = pendentes.map(p => `
+                <div class="bg-[#0a0a0a] p-10 rounded-[40px] border border-white/5 flex justify-between items-center">
                     <div>
-                        <p class="text-[9px] font-black text-[#80ff44] uppercase">${p.merchant}</p>
-                        <h3 class="text-2xl font-black italic">R$ ${p.valor}</h3>
+                        <p class="text-[9px] font-black text-[#80ff44] uppercase mb-1">${p.merchant}</p>
+                        <h3 class="text-3xl font-black italic">R$ ${p.valor}</h3>
+                        <button onclick="verFoto('${p.comprovante}')" class="text-[10px] text-blue-400 font-bold uppercase underline">Ver Comprovante</button>
                     </div>
-                    <button onclick="decidir('${p.id}', 'Aprovado')" class="bg-white text-black px-8 py-3 rounded-xl font-black italic text-xs uppercase hover:bg-[#80ff44] transition">Pagar</button>
+                    <button onclick="decidir('${p.id}', 'Aprovado')" class="bg-white text-black px-8 py-3 rounded-2xl font-black text-xs uppercase italic">Aprovar</button>
                 </div>
             `).join('');
         }
 
-        async function decidir(id, st) {
-            await fetch(`${API}/id/${id}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ data: { status: st } }) });
-            monitorar();
+        function verFoto(src) {
+            document.getElementById('img-full').src = src;
+            document.getElementById('modal').style.display = 'flex';
         }
 
-        setInterval(monitorar, 8000);
-        monitorar();
+        async function decidir(id, st) {
+            await fetch(`${API}/id/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ data: { status: st } })
+            });
+            carregar();
+        }
+
+        carregar();
+        setInterval(carregar, 10000);
     </script>
 </body>
 </html>
