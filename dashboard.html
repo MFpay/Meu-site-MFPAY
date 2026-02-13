@@ -1,88 +1,73 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8"><title>Painel | MF PAY</title>
+    <meta charset="UTF-8"><title>Painel do Cliente | MF PAY</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>body { background: #020617; color: white; }</style>
+    <style>
+        body { background: #020617; color: white; font-family: sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        #lock-screen { background: rgba(0,0,0,0.98); z-index: 9999; display: none; }
+    </style>
 </head>
 <body class="p-6 flex flex-col items-center">
-    <div class="w-full max-w-md space-y-6 pb-10">
-        <header class="flex justify-between items-center bg-[#0f172a] p-5 rounded-[30px] border border-slate-800">
+    <div id="lock-screen" class="fixed inset-0 flex flex-col items-center justify-center text-center p-10">
+        <div class="text-6xl mb-6">🔒</div>
+        <h1 class="text-2xl font-black uppercase text-red-600">Acesso Suspenso</h1>
+        <p class="text-slate-500 text-xs mt-4 uppercase">O sistema está em manutenção de segurança. Tente mais tarde.</p>
+    </div>
+
+    <div class="w-full max-w-md space-y-6">
+        <header class="flex justify-between items-center py-4 glass px-6 rounded-full">
             <h1 class="text-xl font-black italic text-green-500">MF<span class="text-white">PAY</span></h1>
-            <span id="u-name" class="text-[10px] font-bold bg-slate-800 px-3 py-1 rounded-full">...</span>
+            <span id="display-user" class="text-[10px] font-bold text-slate-500 uppercase">...</span>
         </header>
 
-        <div class="bg-gradient-to-br from-[#0f172a] to-[#020617] p-12 rounded-[50px] border border-slate-800 shadow-2xl text-center">
-            <p class="text-slate-500 text-[9px] font-bold uppercase tracking-[0.3em] mb-2 italic">Saldo Disponível</p>
-            <h2 id="bal" class="text-6xl font-black italic tracking-tighter">R$ 0,00</h2>
+        <div class="glass p-12 rounded-[50px] text-center shadow-2xl">
+            <p class="text-slate-500 text-[9px] font-bold uppercase tracking-widest mb-3">Saldo Disponível</p>
+            <h2 id="bal" class="text-5xl font-black italic tracking-tighter">R$ 0,00</h2>
         </div>
 
-        <div class="bg-[#0f172a] p-8 rounded-[45px] border border-slate-800 space-y-4">
-            <input type="number" id="v_op" oninput="calc()" placeholder="0.00" class="bg-transparent text-white text-5xl font-black text-center w-full outline-none">
-            <div id="tax-box" class="text-[10px] text-center font-bold uppercase italic h-4"></div>
-            
-            <input type="text" id="comp" placeholder="Link do Comprovante" class="w-full bg-[#1e293b] p-4 rounded-2xl outline-none text-[10px] border border-slate-700 focus:border-blue-500">
-            
-            <div class="grid grid-cols-2 gap-4 pt-2">
-                <button onclick="send('DEP')" class="bg-green-500 text-black font-black py-5 rounded-3xl text-[11px] uppercase italic">Depositar</button>
-                <button onclick="send('SAQ')" class="bg-white text-black font-black py-5 rounded-3xl text-[11px] uppercase italic">Sacar</button>
+        <div class="glass p-8 rounded-[40px] space-y-4">
+            <input type="number" id="val" placeholder="0.00" class="bg-transparent text-white text-5xl font-black text-center w-full outline-none">
+            <input type="text" id="link" placeholder="Link do Comprovante" class="w-full bg-slate-900/50 p-4 rounded-2xl outline-none text-[10px] text-center border border-slate-800">
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="enviar('DEP')" class="bg-green-500 text-black font-black py-5 rounded-3xl text-[11px] uppercase">Depositar</button>
+                <button onclick="enviar('SAQ')" class="glass text-white font-black py-5 rounded-3xl text-[11px] uppercase">Sacar (5%)</button>
             </div>
-            <p id="pix-key" class="text-[9px] text-center text-slate-500 font-bold uppercase mt-4"></p>
-        </div>
-
-        <div class="bg-[#0f172a] p-6 rounded-3xl border border-slate-800 space-y-4">
-            <h3 class="text-[10px] font-black text-green-500 uppercase italic">Perguntas Frequentes</h3>
-            <details class="text-[11px] text-slate-400"><summary class="cursor-pointer text-white font-bold">Como funciona a taxa de saque?</summary>Uma taxa fixa de 5% é descontada para custos operacionais.</details>
-            <details class="text-[11px] text-slate-400"><summary class="cursor-pointer text-white font-bold">Prazo de aprovação?</summary>Em média 15 a 30 minutos em horário comercial.</details>
+            <p id="pix" class="text-[9px] text-center text-slate-500 font-bold uppercase mt-2"></p>
         </div>
     </div>
 
 <script>
-    const user = localStorage.getItem('currentUser') || 'Convidado';
-    document.getElementById('u-name').innerText = user;
+    const user = localStorage.getItem('currentUser');
+    document.getElementById('display-user').innerText = user;
 
-    function calc() {
-        const v = parseFloat(document.getElementById('v_op').value);
-        document.getElementById('tax-box').innerHTML = v > 0 ? `<span class="text-red-500">Taxa (5%): - R$ ${(v*0.05).toFixed(2)}</span>` : "";
-    }
-
-    function addLog(m, type="INFO") {
-        let logs = JSON.parse(localStorage.getItem('mf_logs') || '[]');
-        logs.unshift(`[${new Date().toLocaleTimeString()}] [${type}] ${m}`);
-        localStorage.setItem('mf_logs', JSON.stringify(logs.slice(0,100)));
-    }
-
-    function send(t) {
-        const v = parseFloat(document.getElementById('v_op').value);
-        const compLink = document.getElementById('comp').value;
+    function enviar(t) {
+        const v = document.getElementById('val').value;
+        const l = document.getElementById('link').value;
         if(!v || v <= 0) return alert("Valor inválido");
-
-        // ANTI-FRAUDE DE COMPROVANTE
-        if(t === 'DEP' && !compLink) return alert("Anexe o comprovante!");
-        let used = JSON.parse(localStorage.getItem('mf_used_comp') || '[]');
-        if(used.includes(compLink)) {
-            addLog(`TENTATIVA DE FRAUDE: Usuário ${user} tentou usar comprovante repetido!`, "FRAUDE");
-            return alert("Este comprovante já foi utilizado!");
-        }
-
-        let valFinal = v;
-        if(t === 'SAQ') {
-            if(v > parseFloat(localStorage.getItem('bal_'+user)||0)) return alert("Saldo insuficiente");
-            valFinal = (v * 0.95).toFixed(2);
-        }
-
-        localStorage.setItem('mf_ped', JSON.stringify({tipo:t, valor:valFinal, user:user, comprovante:compLink}));
-        if(compLink) { used.push(compLink); localStorage.setItem('mf_used_comp', JSON.stringify(used)); }
-        
-        addLog(`Usuário ${user} enviou pedido de ${t} no valor de R$ ${valFinal}`);
-        alert("Pedido enviado ao Soberano!"); location.reload();
+        localStorage.setItem('mf_ped', JSON.stringify({tipo:t, valor:v, user:user, comprovante:l}));
+        alert("Enviado para aprovação!");
     }
 
+    // Sincronização em Tempo Real (O coração do sistema)
     setInterval(() => {
-        document.getElementById('bal').innerText = `R$ ${parseFloat(localStorage.getItem('bal_'+user)||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
-        document.getElementById('pix-key').innerText = "PIX OFICIAL: " + (localStorage.getItem('mf_pix') || 'NÃO DEFINIDO');
+        // Verifica Lockdown
+        const isLocked = localStorage.getItem('mf_lockdown') === 'true';
+        document.getElementById('lock-screen').style.display = isLocked ? 'flex' : 'none';
+
+        // Verifica se o Admin baniu esse usuário agora
+        const bans = JSON.parse(localStorage.getItem('mf_blacklist') || '[]');
+        if(bans.includes(user)) {
+            localStorage.removeItem('currentUser');
+            location.href = 'index.html';
+        }
+
+        // Atualiza Saldo e Chave PIX
+        const s = parseFloat(localStorage.getItem('bal_'+user)||0);
+        document.getElementById('bal').innerText = `R$ ${s.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+        document.getElementById('pix').innerText = "CHAVE PIX: " + (localStorage.getItem('mf_pix') || 'DEFINIR NO ADMIN');
     }, 1000);
 </script>
 </body>
 </html>
-
