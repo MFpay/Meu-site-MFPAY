@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8"><title>DASHBOARD | FINTECH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>body{background:#f1f5f9;font-family:'Inter',sans-serif;}</style>
+</head>
+<body class="flex flex-col items-center p-6 pt-12">
+    <div id="manut" class="hidden fixed inset-0 bg-white z-50 flex flex-col items-center justify-center p-10 text-center font-bold uppercase italic tracking-tighter underline">Aguarde... Sistema em Manutenção Profunda.</div>
+
+    <div class="w-full max-w-md">
+        <h1 id="n-site" class="text-2xl font-black text-slate-900 mb-8 italic tracking-tighter uppercase underline">MF-PAY</h1>
+        
+        <div class="bg-slate-900 p-10 rounded-[40px] shadow-2xl mb-8 border-t-8 border-blue-600">
+            <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1 italic">Disponível para Saque</p>
+            <h2 id="bal" class="text-white text-6xl font-black italic tracking-tighter italic">R$ 0,00</h2>
+        </div>
+
+        <div class="bg-white p-8 rounded-[40px] shadow-xl space-y-4 border border-slate-200">
+            <input type="number" id="v_op" placeholder="Valor R$ 0,00" class="text-4xl font-bold text-center w-full outline-none text-slate-900 p-2">
+            <input type="text" id="m_op" placeholder="Link do Comprovante ou Mensagem" class="w-full text-[10px] text-center p-2 border-b border-slate-100 outline-none italic font-bold">
+            
+            <div id="btns" class="grid grid-cols-2 gap-4">
+                <button onclick="sol('DEP')" class="bg-blue-600 text-white font-black py-5 rounded-3xl text-xs uppercase shadow-lg shadow-blue-500/20 active:scale-95 transition">Depositar</button>
+                <button onclick="sol('SAQ')" class="bg-slate-100 text-slate-500 font-black py-5 rounded-3xl text-xs uppercase active:scale-95 transition">Sacar</button>
+            </div>
+            <div id="wait" class="hidden text-center text-xs font-bold text-blue-600 animate-pulse py-4 italic uppercase tracking-tighter">Operação em análise pelo Administrador...</div>
+        </div>
+        <p id="pix-display" class="mt-6 text-[10px] text-center text-slate-400 font-bold uppercase tracking-widest italic"></p>
+    </div>
+
+<script>
+    const user = localStorage.getItem('currentUser') || 'Convidado';
+
+    function sol(t) {
+        const v = parseFloat(document.getElementById('v_op').value);
+        if(!v || v <= 0) return alert("Insira um valor válido!");
+        
+        const conf = JSON.parse(localStorage.getItem('mf_config') || '{"taxa":"5"}');
+        const vLiq = t === 'SAQ' ? (v * (1 - conf.taxa/100)).toFixed(2) : v;
+
+        localStorage.setItem('mf_ped', JSON.stringify({tipo: t, valorLiquido: vLiq, valorOriginal: v, user: user, msg: document.getElementById('m_op').value}));
+        location.reload();
+    }
+
+    setInterval(() => {
+        if(localStorage.getItem('mf_manut') === 'true') document.getElementById('manut').classList.remove('hidden');
+        const conf = JSON.parse(localStorage.getItem('mf_config') || '{"nome":"MF-PAY"}');
+        document.getElementById('n-site').innerText = conf.nome;
+        document.getElementById('pix-display').innerText = "CHAVE PIX: " + (conf.pix || "DEFINA NO ADMIN");
+        
+        const s = localStorage.getItem('bal_'+user) || '0.00';
+        document.getElementById('bal').innerText = `R$ ${parseFloat(s).toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+        
+        if(localStorage.getItem('mf_ped')) {
+            document.getElementById('btns').classList.add('hidden');
+            document.getElementById('wait').classList.remove('hidden');
+        }
+    }, 1500);
+</script>
+</body>
+</html>
