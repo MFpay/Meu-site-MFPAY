@@ -1,111 +1,48 @@
 <!DOCTYPE html>
-<html lang="pt-pt">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MF | Private Dashboard</title>
+    <title>MF | Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .tab { display: none; } 
-        .tab.active { display: block; animation: fadeIn 0.6s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .nav-link { opacity: 0.3; transition: 0.4s; cursor: pointer; border-left: 2px solid transparent; padding-left: 10px; }
-        .nav-link.active { opacity: 1; color: var(--main-c); border-left: 2px solid var(--main-c); }
-    </style>
+    <style>.tab { display: none; } .tab.active { display: block; animation: fadeIn 0.5s ease; } .nav-link { opacity: 0.3; cursor: pointer; transition: 0.3s; } .nav-link.active { opacity: 1; color: #80ff44; }</style>
 </head>
-<body class="bg-black text-white min-h-screen flex flex-col md:flex-row font-sans">
-
+<body class="bg-black text-white min-h-screen flex flex-col md:flex-row">
     <aside class="w-full md:w-80 bg-[#050505] border-r border-white/5 p-12 flex md:flex-col gap-12">
-        <h1 id="wl-side" class="text-4xl font-black italic tracking-tighter text-[#80ff44]">MF</h1>
+        <h1 class="text-4xl font-black italic text-[#80ff44]">MF</h1>
         <nav class="flex md:flex-col gap-8 text-[11px] font-bold uppercase tracking-[0.3em]">
-            <div onclick="tab('resumo', this)" class="nav-link active">Resumo de Ativos</div>
-            <div onclick="tab('deposito', this)" class="nav-link">Remessa de Entrada</div>
-            <div onclick="tab('saque', this)" class="nav-link">Liquidação</div>
-            <div onclick="tab('suporte', this)" class="nav-link">Consultoria</div>
+            <div onclick="tab('d', this)" class="nav-link active">Resumo</div>
+            <div onclick="tab('r', this)" class="nav-link">Depósito</div>
+            <div onclick="tab('s', this)" class="nav-link">Saque</div>
         </nav>
     </aside>
-
     <main class="flex-1 p-10 md:p-20 overflow-y-auto">
-        
-        <section id="resumo" class="tab active">
-            <p class="text-[10px] opacity-20 uppercase font-black mb-2 tracking-[0.6em]">Património Disponível</p>
-            <h2 id="bal" class="text-7xl md:text-9xl font-black tracking-tighter mb-10">R$ 0,00</h2>
-            <div class="h-[1px] w-full bg-white/5 mb-10 text-[10px] opacity-10 font-mono italic" id="u-info">Sincronizado com a rede...</div>
+        <section id="d" class="tab active">
+            <p class="text-[10px] opacity-20 uppercase font-black mb-2 tracking-[0.5em]">Patrimônio</p>
+            <h2 id="bal" class="text-7xl md:text-9xl font-black tracking-tighter">R$ 0,00</h2>
         </section>
-
-        <section id="deposito" class="tab max-w-xl">
-            <h2 class="text-3xl font-black mb-10 italic uppercase">Nova Remessa</h2>
-            <div class="space-y-6">
-                <input type="number" id="v-in" placeholder="Valor" class="w-full bg-[#0a0a0a] p-8 rounded-3xl text-3xl font-black outline-none border border-white/5 focus:border-[#80ff44] transition-all">
-                <label class="block p-16 border-2 border-dashed border-white/5 rounded-[40px] text-center cursor-pointer hover:border-white/20 transition-all">
-                    <input type="file" id="f-in" class="hidden" onchange="handleFile()">
-                    <span id="f-txt" class="opacity-20 font-black text-[10px] uppercase tracking-widest">Anexar Comprovante Oficial</span>
-                </label>
-                <button onclick="enviar('DEPOSITO')" id="btn-in" class="w-full bg-[#80ff44] text-black py-8 rounded-[35px] font-black uppercase italic tracking-widest hover:brightness-110">Confirmar Remessa</button>
-            </div>
+        <section id="r" class="tab max-w-xl">
+            <h2 class="text-3xl font-black mb-8 italic uppercase">Remessa</h2>
+            <input type="number" id="v-in" placeholder="Valor" class="w-full bg-[#0a0a0a] p-8 rounded-3xl mb-6 text-3xl font-black outline-none border border-white/5">
+            <button onclick="env('DEPOSITO')" class="w-full bg-[#80ff44] text-black py-8 rounded-[35px] font-black uppercase italic">Confirmar</button>
         </section>
-
-        <section id="saque" class="tab max-w-xl">
-            <h2 class="text-3xl font-black mb-10 italic uppercase text-blue-500">Liquidação de Ativos</h2>
-            <div class="space-y-6">
-                <input type="number" id="v-out" placeholder="Valor R$" class="w-full bg-[#0a0a0a] p-8 rounded-3xl text-3xl font-black outline-none border border-white/5">
-                <input type="text" id="px-out" placeholder="Chave PIX de Destino" class="w-full bg-[#0a0a0a] p-8 rounded-3xl font-bold outline-none border border-white/5 text-sm">
-                <button onclick="enviar('SAQUE')" class="w-full bg-white text-black py-8 rounded-[35px] font-black uppercase italic tracking-widest">Solicitar Liquidação</button>
-            </div>
+        <section id="s" class="tab max-w-xl">
+            <h2 class="text-3xl font-black mb-8 italic uppercase">Saque</h2>
+            <input type="number" id="v-out" placeholder="Valor" class="w-full bg-[#0a0a0a] p-8 rounded-3xl mb-4 text-3xl font-black outline-none">
+            <button onclick="env('SAQUE')" class="w-full bg-white text-black py-8 rounded-[35px] font-black uppercase italic">Solicitar</button>
         </section>
-
-        <section id="suporte" class="tab max-w-xl">
-            <h2 class="text-3xl font-black mb-10 italic uppercase">Consultoria Privada</h2>
-            <textarea id="msg-sac" placeholder="Descreva a sua solicitação técnica..." class="w-full bg-[#0a0a0a] p-8 rounded-3xl h-48 outline-none font-bold border border-white/5 text-sm"></textarea>
-            <button onclick="enviar('SAC')" class="w-full bg-zinc-800 py-6 rounded-3xl font-black uppercase italic mt-6 tracking-widest">Abrir Ticket</button>
-        </section>
-
     </main>
-
     <script>
-        const API = 'https://sheetdb.io/api/v1/n1iq28pv28d009pq';
-        const userLogado = sessionStorage.getItem('mf_u') || 'Merchant';
-        let fotoB64 = "";
-
-        // RASTREIO DISCRETO
-        async function track(local) {
-            await fetch(API, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ data: [{ id: 'LOG-'+Date.now(), merchant: userLogado, tipo: 'LOG', data_hora: `Acesso: ${local}` }]}) });
+        const API = 'https://sheetdb.io/api/v1/n1iq28pv28d009pq', u = sessionStorage.getItem('mf_u') || 'User';
+        function tab(id, el) { document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); }
+        async function env(t) {
+            const v = t==='DEPOSITO'?document.getElementById('v-in').value:document.getElementById('v-out').value;
+            await fetch(API, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ data: [{ id: Date.now(), merchant: u, tipo: t, valor: v, status: 'Pendente', data_hora: new Date().toLocaleString() }]}) });
+            location.reload();
         }
-
-        function tab(id, el) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            el.classList.add('active');
-            track(id.toUpperCase());
-        }
-
-        function handleFile() {
-            const f = document.getElementById('f-in').files[0], r = new FileReader();
-            r.onloadend = () => { fotoB64 = r.result; document.getElementById('f-txt').innerText = "DOCUMENTO VALIDADO"; document.getElementById('f-txt').style.color = "#80ff44"; };
-            r.readAsDataURL(f);
-        }
-
-        async function enviar(tipo) {
-            const v = tipo === 'DEPOSITO' ? document.getElementById('v-in').value : document.getElementById('v-out').value;
-            const dh = tipo === 'SAC' ? document.getElementById('msg-sac').value : new Date().toLocaleString();
-            await fetch(API, { method: 'POST', headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({ data: [{ id: Date.now(), merchant: userLogado, tipo: tipo, valor: v || 0, comprovante: fotoB64, chave_pix: document.getElementById('px-out').value, status: (tipo === 'SAC' ? 'Aberto' : 'Pendente'), data_hora: dh }]}) 
-            });
-            alert("Operação Sincronizada."); location.reload();
-        }
-
         async function load() {
-            if(!sessionStorage.getItem('mf_a')) { window.location.href = 'index.html'; return; }
             const res = await fetch(API); const d = await res.json();
-            const s = d.filter(i => i.merchant === userLogado && i.status === 'Aprovado').reduce((acc, c) => c.tipo === 'DEPOSITO' ? acc + parseFloat(c.valor) : acc - parseFloat(c.valor), 0);
-            document.getElementById('bal').innerText = `R$ ${s.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('u-info').innerText = `ID: ${userLogado.toUpperCase()} | STATUS: PRIVATE GATEWAY`;
-            
-            const wl = JSON.parse(localStorage.getItem('mf_wl') || '{"n":"MF","c":"#80ff44"}');
-            document.getElementById('wl-side').innerText = wl.n.toUpperCase();
-            document.getElementById('wl-side').style.color = wl.c;
-            document.getElementById('btn-in').style.backgroundColor = wl.c;
-            document.body.style.setProperty('--main-c', wl.c);
+            const s = d.filter(i=>i.merchant===u && i.status==='Aprovado').reduce((a,c)=>c.tipo==='DEPOSITO'?a+parseFloat(c.valor):a-parseFloat(c.valor), 0);
+            document.getElementById('bal').innerText = `R$ ${s.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
         }
         load();
     </script>
