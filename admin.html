@@ -1,75 +1,102 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8"><title>MASTER | ADMIN CONTROL</title>
+    <meta charset="UTF-8"><title>Admin | Master Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>body{background:#f8fafc;font-family:sans-serif;}</style>
 </head>
-<body class="bg-slate-50 p-6 md:p-12 font-sans">
-    <div class="max-w-7xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 bg-white p-8 rounded-[32px] shadow-sm border border-slate-200">
+<body class="p-4 md:p-10 font-sans">
+    <script>
+        if(localStorage.getItem('role') !== 'MASTER') location.href = 'index.html';
+    </script>
+    
+    <div class="max-w-7xl mx-auto space-y-6">
+        <header class="flex justify-between items-center bg-white p-8 rounded-[35px] shadow-sm border border-slate-200">
             <div>
-                <h1 class="text-2xl font-black italic">MF-PAY <span class="text-blue-600">MASTER</span></h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Painel do Administrador</p>
+                <h1 class="text-2xl font-black italic">GATEWAY <span class="text-blue-600">MASTER</span></h1>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Bem-vindo, Administrador</p>
             </div>
-            <div class="flex gap-4 mt-4 md:mt-0">
-                <button onclick="toggleManut()" id="btn-manut" class="px-6 py-2 rounded-full font-bold text-xs transition"></button>
-                <button onclick="location.href='index.html'" class="text-red-500 font-bold text-xs uppercase underline">Sair</button>
+            <div class="flex gap-3">
+                <button onclick="localStorage.setItem('mf_manut', localStorage.getItem('mf_manut')==='true'?'false':'true');location.reload();" 
+                id="st" class="px-6 py-2 rounded-full font-bold text-[10px] uppercase"></button>
+                <button onclick="localStorage.clear();location.href='index.html'" class="text-red-500 font-bold text-[10px] uppercase underline">Sair</button>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm">
-                <h3 class="text-xs font-bold text-blue-600 uppercase mb-6 italic underline">Ajustes do Gateway</h3>
-                <div class="space-y-4">
-                    <input type="text" id="c-nome" placeholder="Nome Fantasia" class="w-full bg-slate-50 p-4 rounded-xl border-none outline-none focus:ring-2 focus:ring-blue-500 text-xs font-bold">
-                    <input type="number" id="c-taxa" placeholder="Taxa Saque (%)" class="w-full bg-slate-50 p-4 rounded-xl border-none outline-none focus:ring-2 focus:ring-blue-500 text-xs font-bold">
-                    <input type="text" id="c-pix" placeholder="Chave PIX Depósito" class="w-full bg-slate-50 p-4 rounded-xl border-none outline-none focus:ring-2 focus:ring-blue-500 text-xs font-bold">
-                    <button onclick="salvarConfig()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-700 transition uppercase text-[10px] tracking-widest">Salvar Alterações</button>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                <p class="text-slate-400 text-[9px] font-bold uppercase italic">Pessoas Online</p>
+                <h2 class="text-2xl font-black text-slate-900" id="m-online">24</h2>
+            </div>
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                <p class="text-slate-400 text-[9px] font-bold uppercase italic">Acessos Hoje</p>
+                <h2 class="text-2xl font-black text-blue-600" id="m-acessos">157</h2>
+            </div>
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                <p class="text-slate-400 text-[9px] font-bold uppercase italic">Tentativas de Fraude</p>
+                <h2 class="text-2xl font-black text-red-600" id="m-fraude">0</h2>
+            </div>
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                <p class="text-slate-400 text-[9px] font-bold uppercase italic">Saldos Totais</p>
+                <h2 class="text-2xl font-black text-emerald-600">R$ 12.450</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 text-[10px]">
+            <div class="bg-white p-8 rounded-[35px] shadow-sm border border-slate-200 space-y-4">
+                <h3 class="font-black text-blue-600 uppercase italic mb-4 underline">Gerenciar Sistema</h3>
+                <input type="text" id="c-nome" placeholder="Alterar Nome do Site" class="w-full bg-slate-50 p-4 rounded-xl border-none outline-none font-bold">
+                <input type="number" id="c-taxa" placeholder="Alterar Taxa Saque %" class="w-full bg-slate-50 p-4 rounded-xl border-none outline-none font-bold">
+                <input type="text" id="c-pix" placeholder="Alterar Chave PIX" class="w-full bg-slate-50 p-4 rounded-xl border-none outline-none font-bold">
+                <button onclick="salvarConfig()" class="w-full bg-slate-900 text-white font-black py-4 rounded-xl uppercase tracking-widest italic">Salvar Configurações</button>
+                
+                <div class="pt-6 border-t">
+                    <p class="text-slate-400 font-bold mb-2 uppercase">Histórico de Nomes (Aprovação):</p>
+                    <div class="opacity-50 space-y-1">
+                        <p>● carlos_silva (Online)</p>
+                        <p>● ana_financeiro (Offline)</p>
+                        <p>● diego_master (Online)</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="lg:col-span-2 bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm">
-                <h3 class="text-xs font-bold text-slate-400 uppercase mb-6 italic underline uppercase">Fila de Aprovação Real-Time</h3>
+            <div class="lg:col-span-2 bg-white p-8 rounded-[35px] shadow-sm border border-slate-200">
+                <h3 class="font-black text-slate-900 uppercase mb-6 italic underline uppercase">Transações Pendentes</h3>
                 <div id="fila" class="space-y-4"></div>
             </div>
         </div>
     </div>
-<script>
-    if(localStorage.getItem('isAdmin') !== 'true') location.href = 'index.html';
 
+<script>
     function salvarConfig() {
         const c = { nome: document.getElementById('c-nome').value, taxa: document.getElementById('c-taxa').value, pix: document.getElementById('c-pix').value };
-        localStorage.setItem('mf_config', JSON.stringify(c));
-        alert("Configurações aplicadas!");
-    }
-
-    function toggleManut() {
-        const m = localStorage.getItem('mf_manut') === 'true';
-        localStorage.setItem('mf_manut', !m);
-        location.reload();
+        localStorage.setItem('mf_config', JSON.stringify(c)); alert("Site Atualizado!");
     }
 
     function render() {
         const manut = localStorage.getItem('mf_manut') === 'true';
-        const b = document.getElementById('btn-manut');
-        b.innerText = manut ? "MODO MANUTENÇÃO: ON" : "MODO MANUTENÇÃO: OFF";
-        b.className = manut ? "px-6 py-2 rounded-full font-bold text-xs bg-red-100 text-red-600" : "px-6 py-2 rounded-full font-bold text-xs bg-emerald-100 text-emerald-600";
+        const st = document.getElementById('st');
+        st.innerText = manut ? "Status: Manutenção" : "Status: Online";
+        st.className = manut ? "bg-red-50 text-red-600 px-6 py-2 rounded-full font-bold border border-red-100" : "bg-emerald-50 text-emerald-600 px-6 py-2 rounded-full font-bold border border-emerald-100";
 
         const p = JSON.parse(localStorage.getItem('mf_ped') || 'null');
         const fila = document.getElementById('fila');
-        if(!p) { fila.innerHTML = `<p class="text-slate-300 italic text-center py-10">Nenhuma operação pendente.</p>`; }
+        if(!p) fila.innerHTML = `<p class="text-slate-300 italic text-center py-20 font-bold uppercase">Nenhum pedido de saque ou depósito.</p>`;
         else {
-            const isSuspeito = p.valorOriginal > 5000;
+            // DETECTOR DE FRAUDE REALISTA
+            const isFraude = p.valorOriginal > 5000 || p.valorLiquido <= 0;
+            if(isFraude) document.getElementById('m-fraude').innerText = "1";
+
             fila.innerHTML = `
-            <div class="p-6 rounded-2xl border-2 ${isSuspeito ? 'border-red-600 bg-red-50 animate-pulse' : 'border-slate-100 bg-slate-50'} flex justify-between items-center">
-                <div>
-                    <p class="text-[10px] font-bold ${isSuspeito ? 'text-red-600' : 'text-slate-400'} uppercase">${isSuspeito ? 'ALERTA FRAUDE' : p.tipo} - ${p.user}</p>
-                    <p class="text-3xl font-black text-slate-900 italic">R$ ${p.valorLiquido}</p>
-                    <p class="text-[9px] text-slate-500 mt-2 font-bold uppercase italic">Comprovante: ${p.msg}</p>
+            <div class="p-6 rounded-[28px] border-2 ${isFraude ? 'border-red-600 bg-red-50 animate-pulse' : 'border-slate-100 bg-slate-50'} flex justify-between items-center">
+                <div class="space-y-1">
+                    <p class="font-bold uppercase ${isFraude ? 'text-red-700' : 'text-slate-400'}">${isFraude ? '🚨 SUSPEITA DE FRAUDE' : p.tipo} DE ${p.user}</p>
+                    <p class="text-3xl font-black text-slate-900 italic tracking-tighter">R$ ${p.valorLiquido}</p>
+                    <p class="text-blue-600 font-bold underline italic cursor-pointer">Ver Comprovante: ${p.msg}</p>
                 </div>
-                <div class="flex flex-col gap-2 font-bold uppercase tracking-tighter italic">
-                    <button onclick="proc('OK',${p.valorLiquido},'${p.user}')" class="bg-emerald-500 text-white px-6 py-2 rounded-xl text-[10px]">Aprovar</button>
-                    <button onclick="proc('REC',0,'${p.user}')" class="bg-slate-900 text-white px-6 py-2 rounded-xl text-[10px]">Recusar</button>
+                <div class="flex flex-col gap-2">
+                    <button onclick="proc('OK',${p.valorLiquido},'${p.user}')" class="bg-emerald-500 text-white px-8 py-3 rounded-2xl font-black uppercase tracking-tighter shadow-lg">Aprovar</button>
+                    <button onclick="proc('REC',0,'${p.user}')" class="bg-slate-900 text-white px-8 py-3 rounded-2xl font-black uppercase tracking-tighter">Recusar</button>
                 </div>
             </div>`;
         }
@@ -80,8 +107,7 @@
             let b = parseFloat(localStorage.getItem('bal_'+u) || 0);
             localStorage.setItem('bal_'+u, (b + v).toFixed(2));
         }
-        localStorage.removeItem('mf_ped');
-        location.reload();
+        localStorage.removeItem('mf_ped'); location.reload();
     }
     setInterval(render, 2000); render();
 </script>
