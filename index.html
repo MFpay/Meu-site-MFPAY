@@ -2,44 +2,54 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MFpay | Gateway Soberano</title>
+    <title>MF | Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // SEGURANÇA MESTRE MF: Bloqueio Total de Inspeção
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        document.onkeydown = e => { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) return false; };
-        if(localStorage.getItem('mf_panico') === 'true') document.body.innerHTML = "<div style='background:#000;color:#f00;height:100vh;display:flex;align-items:center;justify-content:center;font-weight:900;'>REDE BLOQUEADA PELO MASTER</div>";
-    </script>
+    <style>
+        .form-box { display: none; } .form-box.active { display: block; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
 </head>
-<body class="bg-black text-white flex items-center justify-center min-h-screen p-4">
-    <div class="bg-[#0a0a0a] p-12 rounded-[60px] border border-white/5 w-full max-w-lg text-center shadow-2xl transition-all hover:border-[#80ff44]/20">
-        <h1 id="wl-logo" class="text-6xl font-black italic mb-2 text-[#80ff44]">MFPAY</h1>
-        <p class="text-[10px] opacity-20 uppercase tracking-[0.4em] mb-12">Security Level: MF-GOLD</p>
-        <div class="space-y-5">
-            <input type="email" id="email" placeholder="IDENTIDADE VIRTUAL" class="w-full bg-black border border-white/10 p-6 rounded-3xl outline-none font-bold focus:border-[#80ff44] text-sm">
-            <input type="password" id="pass" placeholder="CHAVE DE ACESSO" class="w-full bg-black border border-white/10 p-6 rounded-3xl outline-none font-bold focus:border-[#80ff44] text-sm">
-            <button onclick="auth()" id="btn-login" class="w-full bg-[#80ff44] text-black py-7 rounded-[30px] font-black uppercase italic text-lg shadow-xl hover:scale-105 transition-all">Sincronizar Acesso</button>
+<body class="bg-[#050505] text-white flex items-center justify-center min-h-screen p-6">
+    <div class="bg-[#0a0a0a] p-12 rounded-[50px] border border-white/5 w-full max-w-md shadow-2xl">
+        <h1 id="logo" class="text-5xl font-black italic text-center mb-10 text-[#80ff44]">MF</h1>
+
+        <div id="login-box" class="form-box active space-y-4">
+            <input type="email" id="l-email" placeholder="E-MAIL" class="w-full bg-black border border-white/5 p-5 rounded-2xl outline-none focus:border-[#80ff44] text-sm font-bold">
+            <input type="password" id="l-pass" placeholder="SENHA" class="w-full bg-black border border-white/5 p-5 rounded-2xl outline-none focus:border-[#80ff44] text-sm font-bold">
+            <button onclick="logar()" id="btn-l" class="w-full bg-[#80ff44] text-black py-6 rounded-3xl font-black uppercase italic tracking-widest transition-all">Sincronizar</button>
+            <p class="text-center text-[10px] opacity-30 font-bold">Novo por aqui? <span onclick="toggle()" class="text-[#80ff44] cursor-pointer">Criar Conta</span></p>
+        </div>
+
+        <div id="register-box" class="form-box space-y-4">
+            <input type="text" id="r-name" placeholder="NOME COMPLETO" class="w-full bg-black border border-white/5 p-5 rounded-2xl outline-none focus:border-[#80ff44] text-sm font-bold">
+            <input type="email" id="r-email" placeholder="E-MAIL GMAIL" class="w-full bg-black border border-white/5 p-5 rounded-2xl outline-none focus:border-[#80ff44] text-sm font-bold">
+            <input type="password" id="r-pass" placeholder="CRIAR SENHA" class="w-full bg-black border border-white/5 p-5 rounded-2xl outline-none focus:border-[#80ff44] text-sm font-bold">
+            <button onclick="cadastrar()" id="btn-r" class="w-full bg-white text-black py-6 rounded-3xl font-black uppercase italic tracking-widest transition-all">Finalizar Cadastro</button>
+            <p class="text-center text-[10px] opacity-30 font-bold">Já tem acesso? <span onclick="toggle()" class="text-[#80ff44] cursor-pointer">Entrar</span></p>
         </div>
     </div>
+
     <script>
-        const wl = JSON.parse(localStorage.getItem('mf_white_label') || '{"nome":"MFpay","cor":"#80ff44"}');
-        document.getElementById('wl-logo').innerText = wl.nome.toUpperCase();
-        document.getElementById('wl-logo').style.color = wl.cor;
-        document.getElementById('btn-login').style.backgroundColor = wl.cor;
+        const API = 'https://sheetdb.io/api/v1/n1iq28pv28d009pq';
+        function toggle() { document.querySelectorAll('.form-box').forEach(b => b.classList.toggle('active')); }
 
-        function auth() {
-            const e = document.getElementById('email').value; const p = document.getElementById('pass').value;
-            const mE = localStorage.getItem('master_email') || 'admin@mf.com';
-            const mP = localStorage.getItem('master_pass') || 'master77';
-
-            if(e === mE && p === mP) {
-                sessionStorage.setItem('mf_auth', btoa('master'));
-                window.location.href = 'admin.html';
-            } else if(e !== '' && p !== '') {
-                sessionStorage.setItem('mf_auth', btoa('user'));
-                sessionStorage.setItem('mf_user', 'Nando');
-                window.location.href = 'painel.html';
+        function logar() {
+            const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
+            if(e === 'admin@mf.com' && p === 'master77') {
+                sessionStorage.setItem('mf_a', btoa('master')); window.location.href = 'admin.html';
+            } else if(e !== "" && p !== "") {
+                sessionStorage.setItem('mf_a', btoa('user')); sessionStorage.setItem('mf_u', e.split('@')[0]); window.location.href = 'painel.html';
             }
+        }
+
+        async function cadastrar() {
+            const n = document.getElementById('r-name').value, e = document.getElementById('r-email').value, p = document.getElementById('r-pass').value;
+            if(!e.includes('@')) return alert("Use um e-mail válido.");
+            // Envia como "Log de Cadastro" para você aprovar ou já liberar
+            await fetch(API, { method: 'POST', headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ data: [{ id: Date.now(), merchant: n, tipo: 'CADASTRO', status: 'Pendente', data_hora: `Email: ${e} | Senha: ${p}` }]}) 
+            });
+            alert("Cadastro enviado! Tente logar agora."); toggle();
         }
     </script>
 </body>
