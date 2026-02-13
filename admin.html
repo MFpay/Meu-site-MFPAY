@@ -1,1 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>MFpay | MASTER DASHBOARD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; }
+        .admin-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 20px; padding: 25px; }
+        .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+        .btn-action { transition: 0.3s; cursor: pointer; }
+        .btn-action:hover { transform: translateY(-2px); opacity: 0.8; }
+    </style>
+</head>
+<body class="p-8">
 
+    <div class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-center mb-12">
+            <div>
+                <h1 class="text-4xl font-black italic text-[#80ff44] tracking-tighter uppercase">MFpay Command Center</h1>
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Gestão de Rede e Protocolos</p>
+            </div>
+            
+            <div class="admin-card flex items-center gap-4 py-4">
+                <span class="text-[10px] font-bold uppercase text-gray-400">Status Global:</span>
+                <button onclick="toggleManutencao()" id="btn-manutencao" class="bg-blue-600 text-white px-6 py-2 rounded-full font-black text-xs btn-action uppercase">
+                    Sistema Online
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-3 gap-6 mb-12">
+            <div class="admin-card border-b-2 border-[#80ff44]">
+                <p class="text-gray-500 text-[10px] font-bold uppercase">Players Cadastrados</p>
+                <h2 id="total-players" class="text-3xl font-black mt-2">0</h2>
+            </div>
+            <div class="admin-card border-b-2 border-blue-500">
+                <p class="text-gray-500 text-[10px] font-bold uppercase">Volume em Nuvem</p>
+                <h2 id="volume-total" class="text-3xl font-black mt-2 text-blue-500">R$ 0,00</h2>
+            </div>
+            <div class="admin-card border-b-2 border-yellow-500">
+                <p class="text-gray-500 text-[10px] font-bold uppercase">Pendências Atuais</p>
+                <h2 id="total-pendencias" class="text-3xl font-black mt-2 text-yellow-500">0</h2>
+            </div>
+        </div>
+
+        <div class="admin-card overflow-hidden p-0">
+            <div class="p-6 border-b border-white/5 flex justify-between items-center">
+                <h3 class="font-black italic uppercase text-sm">Players na Rede</h3>
+                <button onclick="carregarDados()" class="text-[#80ff44] text-[10px] font-bold uppercase">Atualizar Banco</button>
+            </div>
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-white/5 text-[10px] text-gray-500 uppercase font-black">
+                        <th class="p-6">Merchant ID</th>
+                        <th class="p-6">Saldo Atual</th>
+                        <th class="p-6">Último Acesso</th>
+                        <th class="p-6 text-right">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-players" class="text-sm">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+<script>
+    const API = "https://sheetdb.io/api/v1/n1iq28pv28d009pq";
+
+    // 1. Trava de Segurança
+    if(!sessionStorage.getItem('mf_admin_auth')) {
+        let pass = prompt("CHAVE MESTRE MFpay:");
+        if(pass === "1234") {
+            sessionStorage.setItem('mf_admin_auth', 'true');
+        } else {
+            window.location.reload();
+        }
+    }
+
+    // 2. Carregar Dados do SheetDB
+    async function carregarDados() {
+        const res = await fetch(API);
+        const dados = await res.json();
+
+        // Filtrar Players (Tipo CADASTRO)
+        const players = dados.filter(i => i.tipo === 'CADASTRO');
+        document.getElementById('total-players').innerText = players.length;
+
+        // Calcular Volume Total e Pendências
+        let volume = 0;
+        let pendencias = 0;
+        dados.forEach(i => {
+            if(i.status === 'Aprovado') {
+                if(i.tipo === 'DEPOSITO') volume += parseFloat(i.valor);
+                if(i.tipo === 'SAQUE') volume -= parseFloat(i.valor);
+            }
+            if(i.status === 'Pendente') pendencias++;
+        });
+
+        document.getElementById('volume-total').innerText = `R$ ${volume.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        document.getElementById('total-pendencias').innerText = pendencias;
+
+        // Renderizar Lista de Players
+        const lista = document.getElementById('lista-players');
+        lista.innerHTML = players.map(p => {
+            // Calcular saldo individual de cada player
+            let saldoP = 0;
+            dados.filter(d => d.merchant === p.merchant && d.status === 'Aprovado').forEach(d => {
+                if(d.tipo === 'DEPOSITO') saldoP += parseFloat(d.valor);
+                if(d.tipo === 'SAQUE') saldoP -= parseFloat(d.valor);
+            });
+
+            return `
+                <tr class="border-t border-white/5 hover:bg-white/[0.02] transition">
+                    <td class="p-6 font-black italic text-[#80ff44]">${p.merchant}</td>
+                    <td class="p-6 font-bold text-white">R$ ${saldoP.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="p-6 text-gray-500 text-xs">${p.data_hora}</td>
+                    <td class="p-6 text-right">
+                        <button class="bg-white/5 text-gray-400 px-4 py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-red-900 hover:text-white transition">Banir</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // 3. Função Modo Manutenção
+    async function toggleManutencao() {
+        const btn = document.getElementById('btn-manutencao');
+        let statusAtual = btn.innerText.includes("Online");
+
+        if(statusAtual) {
+            if(confirm("Deseja ativar o MODO MANUTENÇÃO? Todos os players serão bloqueados.")){
+                btn.innerText = "MODO MANUTENÇÃO ATIVO";
+                btn.classList.replace('bg-blue-600', 'bg-red-600');
+                localStorage.setItem('mf_manutencao', 'true');
+            }
+        } else {
+            btn.innerText = "SISTEMA ONLINE";
+            btn.classList.replace('bg-red-600', 'bg-blue-600');
+            localStorage.setItem('mf_manutencao', 'false');
+        }
+    }
+
+    setInterval(carregarDados, 15000);
+    carregarDados();
+</script>
+</body>
+</html>
