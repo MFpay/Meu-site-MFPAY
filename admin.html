@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>MF PAY | MASTER COMMAND</title>
+    <title>MFpay | MASTER COMMAND</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; }
@@ -11,44 +11,31 @@
         .admin-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 20px; }
         .nav-btn { width: 100%; text-align: left; padding: 18px 30px; font-size: 11px; font-weight: 900; color: #333; text-transform: uppercase; border-right: 4px solid transparent; italic; }
         .nav-btn.active { color: #80ff44; border-right-color: #80ff44; background: linear-gradient(90deg, transparent, rgba(128,255,68,0.02)); }
+        .alerta-risco { animation: pulseRed 1s infinite; border: 1px solid red !important; }
+        @keyframes pulseRed { 0% { background: #0d0d0d; } 50% { background: #400000; } 100% { background: #0d0d0d; } }
+        .log-info { color: #555; } .log-alerta { color: #ffaa00; font-weight: bold; } .log-critico { color: #ff4444; font-weight: 900; background: #200; }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar py-10 flex flex-col justify-between">
-        <div class="px-10 mb-12"><h1 class="text-xl font-black italic text-[#80ff44] uppercase">MF PAY MASTER</h1></div>
+    <aside class="sidebar py-10 flex flex-col justify-between text-center">
+        <div class="px-10 mb-12"><h1 class="text-xl font-black italic text-[#80ff44] uppercase">MFpay MASTER</h1></div>
         <nav class="space-y-1">
-            <button onclick="tab('fila')" id="btn-fila" class="nav-btn active">Controle Global</button>
-            <button onclick="tab('config')" id="btn-cfg" class="nav-btn">Ajustes Master</button>
+            <button onclick="tab('fila')" class="nav-btn active">Fila Real-Time</button>
+            <button onclick="tab('auditoria')" class="nav-btn">Monitor de Risco</button>
         </nav>
         <div class="px-8"><button onclick="toggleLockdown()" id="lockBtn" class="w-full py-4 rounded-xl font-black text-[10px] uppercase italic"></button></div>
     </aside>
 
     <main class="main-content">
         <div id="fila" class="tab-sec">
-            <div class="grid grid-cols-3 gap-6 mb-12">
-                <div class="admin-card p-8 text-center border-b-2 border-[#80ff44]">
-                    <p class="text-[10px] text-gray-600 font-black uppercase">Pessoas Online Agora</p>
-                    <h3 id="stat-online" class="text-5xl font-black italic text-[#80ff44]">0</h3>
-                </div>
-                <div class="admin-card p-8 text-center border-b-2 border-blue-500">
-                    <p class="text-[10px] text-gray-600 font-black uppercase">Volume Pendente</p>
-                    <h3 id="vol-esp" class="text-4xl font-black italic text-blue-500">R$ 0,00</h3>
-                </div>
-                <div class="admin-card p-8 text-center border-b-2 border-white/10">
-                    <p class="text-[10px] text-gray-600 font-black uppercase">Total na Rede</p>
-                    <h3 id="stat-total" class="text-4xl font-black italic">R$ 0,00</h3>
-                </div>
-            </div>
-            <div class="admin-card overflow-hidden">
-                <table class="w-full text-left text-xs"><tbody id="lista-pedidos"></tbody></table>
-            </div>
+            <h2 class="text-4xl font-black italic uppercase italic mb-10">Monitor de Operações</h2>
+            <div id="lista-pedidos" class="space-y-4"></div>
         </div>
 
-        <div id="config" class="tab-sec hidden p-10">
-            <h2 class="text-3xl font-black italic mb-6">CHAVE PIX GLOBAL</h2>
-            <input type="text" id="master-pix" class="bg-black border border-white/10 p-5 rounded-xl w-full text-white mb-6">
-            <button onclick="localStorage.setItem('mf_pix', document.getElementById('master-pix').value); alert('Chave Salva!')" class="w-full bg-[#80ff44] text-black font-black py-4 rounded-xl uppercase italic">Atualizar Recebimento</button>
+        <div id="auditoria" class="tab-sec hidden">
+            <h2 class="text-4xl font-black italic uppercase mb-8">Logs de Segurança</h2>
+            <div class="admin-card p-10 h-[500px] overflow-y-auto space-y-2 text-[10px]" id="container-logs"></div>
         </div>
     </main>
 
@@ -56,7 +43,6 @@
 
 <script>
     let ultimoId = null;
-
     function tab(t) {
         document.querySelectorAll('.tab-sec').forEach(x => x.classList.add('hidden'));
         document.getElementById(t).classList.remove('hidden');
@@ -65,14 +51,24 @@
     function renderPedidos() {
         const ped = JSON.parse(localStorage.getItem('mf_ped'));
         const l = document.getElementById('lista-pedidos');
-        if(!ped) { 
-            l.innerHTML = '<tr><td class="p-20 text-center text-gray-800 font-black uppercase italic">Sem atividades pendentes</td></tr>'; 
-            document.getElementById('vol-esp').innerText = 'R$ 0,00';
-            return; 
-        }
+        if(!ped) { l.innerHTML = '<p class="text-gray-800 font-black italic uppercase">Vigilância Estável...</p>'; return; }
+        
         if(ped.timestamp !== ultimoId) { document.getElementById('snd').play(); ultimoId = ped.timestamp; }
-        document.getElementById('vol-esp').innerText = `R$ ${parseFloat(ped.valor).toLocaleString('pt-BR')}`;
-        l.innerHTML = `<tr class="border-t border-white/5"><td class="p-8 font-black uppercase italic">${ped.user}</td><td class="p-8">${ped.tipo}</td><td class="p-8 text-[#80ff44] font-black text-xl">R$ ${ped.valor}</td><td class="p-8 text-right"><button onclick="decidir('APR')" class="bg-[#80ff44] text-black px-8 py-3 rounded-xl font-black uppercase italic shadow-lg">Aprovar Agora</button></td></tr>`;
+        
+        let rClass = ped.risco === 'ALTO' ? 'alerta-risco' : '';
+        let rText = ped.risco === 'ALTO' ? '<span class="text-red-500 font-black blink uppercase ml-4">[RISCO DETECTADO]</span>' : '';
+
+        l.innerHTML = `
+            <div class="admin-card p-10 flex justify-between items-center ${rClass}">
+                <div>
+                    <h3 class="font-black italic text-xl uppercase">${ped.user} ${rText}</h3>
+                    <p class="text-[10px] text-gray-500 uppercase">${ped.tipo} • ID: ${ped.timestamp}</p>
+                </div>
+                <div class="text-right">
+                    <h2 class="text-4xl font-black italic text-[#80ff44]">R$ ${ped.valor}</h2>
+                    <button onclick="decidir('APR')" class="mt-4 bg-[#80ff44] text-black px-10 py-3 rounded-xl font-black uppercase italic">Validar Operação</button>
+                </div>
+            </div>`;
     }
 
     function decidir(acao) {
@@ -83,20 +79,16 @@
     }
 
     setInterval(() => {
-        let onlineCount = 0; let totalRede = 0; const agora = Date.now();
-        for(let i=0; i<localStorage.length; i++) {
-            let k = localStorage.key(i);
-            if(k.startsWith('online_') && (agora - parseInt(localStorage.getItem(k)) < 10000)) onlineCount++;
-            if(k.startsWith('bal_')) totalRede += parseFloat(localStorage.getItem(k));
-        }
-        document.getElementById('stat-online').innerText = onlineCount;
-        document.getElementById('stat-total').innerText = `R$ ${totalRede.toLocaleString('pt-BR')}`;
-        
-        const s = localStorage.getItem('mf_lockdown') === 'true';
-        const b = document.getElementById('lockBtn');
-        b.innerText = s ? "DESTRAVAR REDE" : "LOCKDOWN GLOBAL";
-        b.style.background = s ? "#ef4444" : "#111";
+        // RENDER LOGS COM CORES DE RISCO
+        const logs = JSON.parse(localStorage.getItem('mf_logs_master') || '[]');
+        document.getElementById('container-logs').innerHTML = logs.map(l => `
+            <div class="p-2 border-b border-white/5 ${l.nivel === 'CRÍTICO' ? 'log-critico' : (l.nivel === 'ALTO RISCO' ? 'log-alerta' : 'log-info')}">
+                [${l.data}] [${l.nivel}] ${l.user}: ${l.acao}
+            </div>`).join('');
+
         renderPedidos();
+        const s = localStorage.getItem('mf_lockdown') === 'true';
+        document.getElementById('lockBtn').innerText = s ? "LIBERAR" : "LOCKDOWN";
     }, 1500);
 </script>
 </body>
