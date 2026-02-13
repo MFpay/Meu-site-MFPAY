@@ -20,12 +20,12 @@
             <div class="inline-flex p-4 bg-[#00e38c]/10 rounded-3xl mb-4">
                 <i data-lucide="shield-check" class="text-[#00e38c] w-12 h-12"></i>
             </div>
-            <h1 class="text-4xl font-black italic text-[#00e38c] tracking-tighter uppercase">MFPAY</h1>
-            <p class="text-[10px] text-zinc-600 uppercase tracking-[0.5em] font-black mt-2">Criptografia Ativa</p>
+            <h1 class="text-4xl font-black italic text-[#00e38c] tracking-tighter uppercase text-center">MFPAY</h1>
+            <p class="text-[10px] text-zinc-600 uppercase tracking-[0.5em] font-black mt-2">Security Protocol Active</p>
         </div>
         
         <div class="space-y-4">
-            <input type="email" id="email" placeholder="E-mail do Merchant" class="w-full p-5 rounded-2xl text-sm">
+            <input type="email" id="email" placeholder="E-mail" class="w-full p-5 rounded-2xl text-sm">
             <input type="password" id="pass" placeholder="PIN de Acesso" class="w-full p-5 rounded-2xl text-sm">
         </div>
 
@@ -53,7 +53,7 @@
                     localStorage.setItem('mf_user', e);
                     window.location.href = 'dashboard.html';
                 } else {
-                    alert("PIN de acesso incorreto.");
+                    alert("PIN incorreto.");
                     b.disabled = false; b.innerText = "Acessar Rede Segura";
                 }
             } else {
@@ -65,7 +65,7 @@
                 localStorage.setItem('mf_user', e);
                 window.location.href = 'dashboard.html';
             }
-        } catch (err) { b.disabled = false; }
+        } catch (err) { b.disabled = false; b.innerText = "Erro de Rede"; }
     }
 </script>
 </body>
