@@ -7,15 +7,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
         .sidebar { background: #0a0a0a; border-right: 1px solid #151515; height: 100vh; position: fixed; width: 260px; z-index: 50; }
-        .main-content { margin-left: 260px; padding: 40px; min-height: 100vh; }
-        .gateway-card { background: #0f0f0f; border-radius: 24px; border: 1px solid #1a1a1a; transition: 0.3s; }
+        .main-content { margin-left: 260px; padding: 40px; height: 100vh; overflow-y: auto; }
+        .gateway-card { background: #0f0f0f; border-radius: 24px; border: 1px solid #1a1a1a; }
         .nav-btn { width: 100%; text-align: left; padding: 18px 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #444; border-left: 4px solid transparent; italic; }
         .nav-btn.active { color: #80ff44; background: #0f0f0f; border-left-color: #80ff44; }
         .progress-fill { background: #80ff44; height: 100%; transition: width 1.5s ease; box-shadow: 0 0 20px rgba(128,255,68,0.4); }
         input { background: #000 !important; border: 1px solid #1a1a1a !important; border-radius: 14px !important; color: #fff; padding: 18px; width: 100%; outline: none; }
-        input:focus { border-color: #80ff44 !important; }
         .tab-content { display: none; animation: fadeIn 0.4s ease; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -26,7 +25,7 @@
 
     <div id="lock-screen">
         <div class="w-12 h-12 border-4 border-[#80ff44] border-t-transparent rounded-full animate-spin mb-6"></div>
-        <h2 class="text-[#80ff44] font-black text-xs uppercase italic tracking-widest text-center">Protocolo de Segurança Ativado<br><span class="text-white text-[8px]">Aguarde a liberação do Master</span></h2>
+        <h2 class="text-[#80ff44] font-black text-xs uppercase italic tracking-widest">Protocolo de Segurança Ativado</h2>
     </div>
 
     <aside class="sidebar flex flex-col justify-between py-12">
@@ -34,188 +33,104 @@
             <div class="px-10 mb-16"><h1 class="font-black italic text-2xl uppercase tracking-tighter">MF <span class="text-gray-700">PAY</span></h1></div>
             <nav>
                 <button onclick="openTab(event, 'dash')" class="nav-btn active">Dashboard</button>
-                <button onclick="openTab(event, 'extrato')" class="nav-btn">Extrato</button>
                 <button onclick="openTab(event, 'deposito')" class="nav-btn">Injetar Capital</button>
                 <button onclick="openTab(event, 'saque')" class="nav-btn">Liquidação</button>
                 <button onclick="openTab(event, 'seguranca')" class="nav-btn">Segurança & PIN</button>
             </nav>
         </div>
-        <div class="px-10 py-4 bg-white/5 mx-6 rounded-xl text-center">
-            <p class="text-[9px] font-black text-gray-500 uppercase mb-1">Status da Conta</p>
-            <p id="tier-name" class="text-[10px] font-black text-[#80ff44] uppercase italic">Soldado</p>
-        </div>
+        <div class="px-10 text-[10px] text-gray-700 font-black italic uppercase" id="display-user">Merchant: ---</div>
     </aside>
 
     <main class="main-content">
         <div id="dash" class="tab-content active space-y-10">
             <div class="flex justify-between items-end">
-                <div>
-                    <h2 class="text-4xl font-black italic uppercase">Visão Geral</h2>
-                    <p class="text-[10px] text-gray-600 font-bold uppercase mt-1 italic tracking-widest" id="display-user">Merchant: ---</p>
-                </div>
+                <h2 class="text-4xl font-black italic uppercase">Mercado Ativo</h2>
                 <span class="bg-blue-500/10 text-blue-400 text-[9px] font-black px-4 py-2 rounded-full border border-blue-500/20 uppercase italic">✔ Verificado</span>
             </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="gateway-card p-12 lg:col-span-2 border-b-4 border-b-[#80ff44]">
-                    <p class="text-gray-600 text-[10px] font-bold uppercase mb-2">Capital em Custódia</p>
+                    <p class="text-gray-600 text-[10px] font-bold uppercase mb-2">Saldo em Custódia</p>
                     <h2 id="bal" class="text-7xl font-black italic tracking-tighter">R$ 0,00</h2>
                 </div>
-                <div class="gateway-card p-10 flex flex-col justify-center text-center">
-                    <p class="text-gray-600 text-[10px] font-bold uppercase mb-4 italic">Performance</p>
+                <div class="gateway-card p-10 text-center">
+                    <p class="text-gray-600 text-[10px] font-bold uppercase mb-4 italic">Faturamento</p>
                     <span class="text-5xl font-black text-[#80ff44] italic" id="prog-val">0%</span>
                     <div class="w-full bg-black h-2 rounded-full mt-6 border border-white/5 overflow-hidden">
                         <div id="faturamento-bar" class="progress-fill" style="width: 0%"></div>
                     </div>
-                    <p id="taxa-display" class="text-[9px] text-gray-700 mt-4 uppercase font-bold italic">Taxa de Saque: 5.0%</p>
                 </div>
-            </div>
-
-            <div class="gateway-card p-8">
-                <h3 class="text-xs font-black uppercase italic text-gray-500 mb-4">Logs de Atividade Recente</h3>
-                <div id="lista-logs" class="space-y-3 text-[10px] font-bold italic text-gray-700"></div>
-            </div>
-        </div>
-
-        <div id="extrato" class="tab-content space-y-6">
-            <h2 class="text-4xl font-black italic uppercase">Movimentações</h2>
-            <div class="gateway-card overflow-hidden">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-black/50 text-[10px] font-black uppercase text-gray-600 tracking-widest">
-                        <tr><th class="p-6">Data</th><th class="p-6">Tipo</th><th class="p-6">Valor</th><th class="p-6 text-right">Status</th></tr>
-                    </thead>
-                    <tbody id="lista-extrato"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="deposito" class="tab-content max-w-2xl mx-auto space-y-8">
-            <h2 class="text-4xl font-black italic uppercase text-center">Injetar Capital</h2>
-            <div class="gateway-card p-12 space-y-8">
-                <input type="number" id="val-dep" placeholder="R$ 0,00" class="text-3xl font-black">
-                <input type="text" id="link-comp" placeholder="Link do Comprovante (Obrigatório)" class="italic">
-                <div class="bg-black p-4 rounded-xl border border-white/5 flex justify-between items-center text-xs">
-                    <span id="pix-admin-key" class="text-[#80ff44] font-mono italic">---</span>
-                    <button onclick="navigator.clipboard.writeText(document.getElementById('pix-admin-key').innerText); alert('Copiado!')" class="text-gray-600 font-black">COPIAR PIX</button>
-                </div>
-                <button onclick="enviarOperacao('DEP')" class="w-full bg-[#80ff44] text-black font-black py-6 rounded-2xl text-[11px] uppercase italic tracking-widest shadow-lg">Efetivar Solicitação</button>
             </div>
         </div>
 
         <div id="saque" class="tab-content max-w-2xl mx-auto space-y-8">
             <h2 class="text-4xl font-black italic uppercase text-center">Liquidação</h2>
             <div class="gateway-card p-12 space-y-8">
-                <input type="number" id="val-saq" placeholder="R$ 0,00" class="text-3xl font-black">
-                <div class="space-y-2">
-                    <p class="text-[10px] font-black text-gray-600 uppercase italic text-center">Confirmação de Identidade (PIN)</p>
-                    <input type="password" id="pin-saque" maxlength="4" placeholder="****" class="text-center text-3xl tracking-[1em] font-black border-[#80ff44]/20">
-                </div>
-                <button onclick="enviarOperacao('SAQ')" class="w-full bg-[#80ff44] text-black font-black py-6 rounded-2xl text-[11px] uppercase italic tracking-widest shadow-lg">Autorizar Liquidação</button>
+                <input type="number" id="val-saq" placeholder="Valor R$ 0,00" class="text-3xl font-black">
+                <input type="password" id="pin-saque" maxlength="4" placeholder="DIGITE SEU PIN" class="text-center tracking-[1em] text-2xl">
+                <button onclick="enviarOperacao('SAQ')" class="w-full bg-[#80ff44] text-black font-black py-6 rounded-2xl text-[11px] uppercase italic tracking-widest shadow-lg">Solicitar Saque</button>
             </div>
         </div>
 
-        <div id="seguranca" class="tab-content max-w-md mx-auto space-y-8">
-            <h2 class="text-4xl font-black italic uppercase text-center">Segurança</h2>
-            <div class="gateway-card p-12 space-y-8 text-center border-t-4 border-t-blue-500">
-                <p class="text-xs text-gray-500 italic">Defina seu PIN de 4 dígitos para proteger seus saques.</p>
-                <input type="password" id="novo-pin" maxlength="4" placeholder="Novo PIN" class="text-center text-2xl tracking-[0.5em] font-black">
-                <button onclick="salvarPin()" class="w-full bg-white text-black font-black py-4 rounded-xl uppercase italic">Atualizar PIN de Saque</button>
+        <div id="deposito" class="tab-content max-w-2xl mx-auto space-y-8">
+            <h2 class="text-4xl font-black italic uppercase text-center">Injetar Capital</h2>
+            <div class="gateway-card p-12 space-y-8">
+                <input type="number" id="val-dep" placeholder="Valor R$ 0,00" class="text-3xl font-black">
+                <input type="text" id="link-comp" placeholder="Link do Comprovante" class="italic">
+                <div class="bg-black p-4 rounded-xl border border-white/5 flex justify-between items-center text-xs">
+                    <span id="pix-admin-key" class="text-[#80ff44] font-mono italic">---</span>
+                    <button onclick="navigator.clipboard.writeText(document.getElementById('pix-admin-key').innerText)" class="text-gray-600 font-black">COPY</button>
+                </div>
+                <button onclick="enviarOperacao('DEP')" class="w-full bg-[#80ff44] text-black font-black py-6 rounded-2xl text-[11px] uppercase italic tracking-widest shadow-lg">Confirmar Envio</button>
+            </div>
+        </div>
+
+        <div id="seguranca" class="tab-content max-w-md mx-auto space-y-8 text-center">
+            <h2 class="text-4xl font-black italic uppercase">PIN Master</h2>
+            <div class="gateway-card p-12 space-y-6">
+                <input type="password" id="new-pin" maxlength="4" placeholder="NOVO PIN" class="text-center text-2xl tracking-[0.5em]">
+                <button onclick="salvarPin()" class="w-full bg-white text-black font-black py-4 rounded-xl uppercase italic">Salvar PIN</button>
             </div>
         </div>
     </main>
 
 <script>
-    const user = localStorage.getItem('currentUser') || 'nando_merchant';
+    const user = "nando_merchant"; 
     document.getElementById('display-user').innerText = `Merchant: ${user}`;
 
-    function addLog(msg) {
-        let logs = JSON.parse(localStorage.getItem('logs_'+user) || '[]');
-        logs.unshift({ time: new Date().toLocaleTimeString(), msg: msg });
-        localStorage.setItem('logs_'+user, JSON.stringify(logs.slice(0, 5)));
-        renderLogs();
-    }
-
-    function renderLogs() {
-        const l = JSON.parse(localStorage.getItem('logs_'+user) || '[]');
-        document.getElementById('lista-logs').innerHTML = l.map(x => `<div>> [${x.time}] ${x.msg}</div>`).join('');
-    }
-
     function openTab(evt, t) {
-        const tabs = document.getElementsByClassName("tab-content");
-        for (let i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
-        const btns = document.getElementsByClassName("nav-btn");
-        for (let i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+        document.querySelectorAll(".tab-content").forEach(x => x.classList.remove('active'));
+        document.querySelectorAll(".nav-btn").forEach(x => x.classList.remove('active'));
         document.getElementById(t).classList.add('active');
         if(evt) evt.currentTarget.classList.add('active');
-        if(t === 'extrato') renderExtrato();
     }
 
     function salvarPin() {
-        const p = document.getElementById('novo-pin').value;
-        if(p.length === 4) {
-            localStorage.setItem('pin_'+user, p);
-            addLog("PIN de segurança atualizado.");
-            alert("PIN SALVO!");
-        } else { alert("USE 4 DÍGITOS!"); }
-    }
-
-    function renderExtrato() {
-        const hist = JSON.parse(localStorage.getItem('hist_'+user) || '[]');
-        document.getElementById('lista-extrato').innerHTML = hist.reverse().map(h => `
-            <tr class="border-t border-white/5">
-                <td class="p-6 text-gray-500">${h.data}</td>
-                <td class="p-6 uppercase font-black">${h.tipo}</td>
-                <td class="p-6 italic font-black">R$ ${parseFloat(h.valor).toLocaleString('pt-BR')}</td>
-                <td class="p-6 text-right uppercase text-[9px] font-black ${h.status === 'Aprovado' ? 'text-[#80ff44]' : 'text-yellow-500'}">${h.status}</td>
-            </tr>
-        `).join('');
+        localStorage.setItem('pin_'+user, document.getElementById('new-pin').value);
+        alert("PIN ATUALIZADO!");
     }
 
     function enviarOperacao(t) {
         const v = (t === 'DEP') ? document.getElementById('val-dep').value : document.getElementById('val-saq').value;
-        const pinDigitado = document.getElementById('pin-saque').value;
-        const pinSalvo = localStorage.getItem('pin_'+user);
-
-        if(!v || v <= 0) return alert("VALOR INVÁLIDO");
-        if(t === 'SAQ' && pinDigitado !== pinSalvo) return alert("PIN INCORRETO!");
-        if(t === 'DEP' && !document.getElementById('link-comp').value) return alert("LINK DO COMPROVANTE OBRIGATÓRIO!");
-
-        const currentBal = parseFloat(localStorage.getItem('bal_'+user) || 0);
-        if(t === 'SAQ' && v > currentBal) return alert("SALDO INSUFICIENTE");
-
-        localStorage.setItem('mf_ped', JSON.stringify({ 
-            tipo: t, valor: v, user: user, 
-            comprovante: document.getElementById('link-comp').value, 
-            timestamp: Date.now() 
-        }));
-        
-        const hist = JSON.parse(localStorage.getItem('hist_'+user) || '[]');
-        hist.push({ data: new Date().toLocaleDateString(), tipo: t, valor: v, status: 'Pendente' });
-        localStorage.setItem('hist_'+user, JSON.stringify(hist));
-        
-        addLog(`Solicitação de ${t === 'DEP' ? 'Injeção' : 'Saque'} enviada.`);
-        alert("ENVIADO AO MASTER!");
+        const pin = document.getElementById('pin-saque').value;
+        if(t === 'SAQ' && pin !== localStorage.getItem('pin_'+user)) return alert("PIN INCORRETO!");
+        localStorage.setItem('mf_ped', JSON.stringify({ tipo: t, valor: v, user: user, comprovante: document.getElementById('link-comp').value, timestamp: Date.now() }));
+        alert("SOLICITAÇÃO TRANSMITIDA!");
         location.reload();
     }
 
     setInterval(() => {
+        // SINAL DE VIDA (Batida de Coração para o Admin)
+        localStorage.setItem('online_'+user, Date.now());
+
         const lock = localStorage.getItem('mf_lockdown') === 'true';
         document.getElementById('lock-screen').style.display = lock ? 'flex' : 'none';
-        
         const s = parseFloat(localStorage.getItem('bal_'+user) || 0);
         document.getElementById('bal').innerText = `R$ ${s.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
         document.getElementById('pix-admin-key').innerText = localStorage.getItem('mf_pix') || 'DEFINA NO ADMIN';
-
-        let tier = "Soldado"; let taxa = "5.0%"; let per = (s/10000)*100;
-        if(s >= 100000) { tier = "Soberano"; taxa = "2.0%"; per = 100; }
-        else if(s >= 50000) { tier = "Elite"; taxa = "3.5%"; per = 75; }
-        
-        document.getElementById('tier-name').innerText = tier;
-        document.getElementById('taxa-display').innerText = `Taxa: ${taxa}`;
+        let per = (s/100000)*100; if(per > 100) per = 100;
         document.getElementById('faturamento-bar').style.width = per + '%';
         document.getElementById('prog-val').innerText = Math.round(per) + '%';
     }, 1000);
-    renderLogs();
 </script>
 </body>
 </html>
