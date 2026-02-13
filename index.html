@@ -2,37 +2,32 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MF | Portal</title>
+    <title>MF | Portal de Acesso</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .form-box { display: none; } .form-box.active { display: block; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    </style>
+    <style>.form-box { display: none; } .form-box.active { display: block; animation: fadeIn 0.5s ease; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }</style>
 </head>
-<body class="bg-[#050505] text-white flex items-center justify-center min-h-screen p-6">
+<body class="bg-[#050505] text-white flex items-center justify-center min-h-screen p-6 font-sans">
     <div class="bg-[#0a0a0a] p-12 rounded-[50px] border border-white/5 w-full max-w-md shadow-2xl">
         <h1 id="logo" class="text-5xl font-black italic text-center mb-10 text-[#80ff44]">MF</h1>
 
         <div id="login-box" class="form-box active space-y-4">
             <input type="email" id="l-email" placeholder="E-MAIL" class="w-full bg-black border border-white/5 p-5 rounded-2xl outline-none focus:border-[#80ff44] text-sm font-bold">
             <input type="password" id="l-pass" placeholder="SENHA" class="w-full bg-black border border-white/5 p-5 rounded-2xl outline-none focus:border-[#80ff44] text-sm font-bold">
-            <button onclick="logar()" id="btn-l" class="w-full bg-[#80ff44] text-black py-6 rounded-3xl font-black uppercase italic tracking-widest transition-all">Sincronizar</button>
-            <p class="text-center text-[10px] opacity-30 font-bold">Novo por aqui? <span onclick="toggle()" class="text-[#80ff44] cursor-pointer">Criar Conta</span></p>
+            <button onclick="logar()" class="w-full bg-[#80ff44] text-black py-6 rounded-3xl font-black uppercase italic tracking-widest transition-all">Sincronizar</button>
+            <p class="text-center text-[10px] opacity-30 font-bold uppercase tracking-widest">Novo por aqui? <span onclick="toggle()" class="text-[#80ff44] cursor-pointer">Criar Conta</span></p>
         </div>
 
         <div id="register-box" class="form-box space-y-4">
             <input type="text" id="r-name" placeholder="NOME COMPLETO" class="w-full bg-black border border-white/5 p-5 rounded-2xl outline-none focus:border-[#80ff44] text-sm font-bold">
             <input type="email" id="r-email" placeholder="E-MAIL GMAIL" class="w-full bg-black border border-white/5 p-5 rounded-2xl outline-none focus:border-[#80ff44] text-sm font-bold">
             <input type="password" id="r-pass" placeholder="CRIAR SENHA" class="w-full bg-black border border-white/5 p-5 rounded-2xl outline-none focus:border-[#80ff44] text-sm font-bold">
-            <button onclick="cadastrar()" id="btn-r" class="w-full bg-white text-black py-6 rounded-3xl font-black uppercase italic tracking-widest transition-all">Finalizar Cadastro</button>
-            <p class="text-center text-[10px] opacity-30 font-bold">Já tem acesso? <span onclick="toggle()" class="text-[#80ff44] cursor-pointer">Entrar</span></p>
+            <button onclick="cadastrar()" class="w-full bg-white text-black py-6 rounded-3xl font-black uppercase italic tracking-widest transition-all">Finalizar Cadastro</button>
+            <p class="text-center text-[10px] opacity-30 font-bold uppercase tracking-widest">Já tem acesso? <span onclick="toggle()" class="text-[#80ff44] cursor-pointer">Entrar</span></p>
         </div>
     </div>
-
     <script>
         const API = 'https://sheetdb.io/api/v1/n1iq28pv28d009pq';
         function toggle() { document.querySelectorAll('.form-box').forEach(b => b.classList.toggle('active')); }
-
         function logar() {
             const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
             if(e === 'admin@mf.com' && p === 'master77') {
@@ -41,15 +36,10 @@
                 sessionStorage.setItem('mf_a', btoa('user')); sessionStorage.setItem('mf_u', e.split('@')[0]); window.location.href = 'painel.html';
             }
         }
-
         async function cadastrar() {
             const n = document.getElementById('r-name').value, e = document.getElementById('r-email').value, p = document.getElementById('r-pass').value;
-            if(!e.includes('@')) return alert("Use um e-mail válido.");
-            // Envia como "Log de Cadastro" para você aprovar ou já liberar
-            await fetch(API, { method: 'POST', headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({ data: [{ id: Date.now(), merchant: n, tipo: 'CADASTRO', status: 'Pendente', data_hora: `Email: ${e} | Senha: ${p}` }]}) 
-            });
-            alert("Cadastro enviado! Tente logar agora."); toggle();
+            await fetch(API, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ data: [{ id: Date.now(), merchant: n, tipo: 'CADASTRO', status: 'Pendente', data_hora: `Email: ${e} | Senha: ${p}` }]}) });
+            alert("Cadastro Enviado!"); toggle();
         }
     </script>
 </body>
