@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MFpay | Acesso Restrito</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .login-card { background: #0d0d0d; border: 1px solid #1a1a1a; padding: 50px; border-radius: 30px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        input { background: #000 !important; border: 1px solid #222 !important; border-radius: 15px; color: #fff; padding: 20px; width: 100%; outline: none; margin-bottom: 20px; text-align: center; font-weight: 700; }
+        input:focus { border-color: #80ff44 !important; }
+        .btn-login { background: #80ff44; color: #000; font-weight: 900; text-transform: uppercase; font-style: italic; width: 100%; padding: 20px; border-radius: 15px; letter-spacing: 1px; transition: 0.3s; }
+        .btn-login:hover { transform: scale(1.02); shadow: 0 0 20px rgba(128,255,68,0.3); }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h1 class="text-4xl font-black italic text-[#80ff44] mb-2 uppercase">MFpay</h1>
+        <p class="text-gray-600 text-[10px] font-bold uppercase tracking-[0.3em] mb-10">Gateway de Elite</p>
+        
+        <div id="login-form">
+            <input type="text" id="user-name" placeholder="NOME DO MERCHANT">
+            <input type="password" id="user-pin" maxlength="4" placeholder="PIN DE ACESSO">
+            <button onclick="autenticar()" id="btn-entrar" class="btn-login">Entrar no Sistema</button>
+        </div>
+        
+        <p id="msg" class="mt-6 text-xs font-bold text-red-500 uppercase italic"></p>
+    </div>
+
+<script>
+    const API = "https://sheetdb.io/api/v1/n1iq28pv28d009pq";
+
+    async function autenticar() {
+        const user = document.getElementById('user-name').value.toUpperCase();
+        const pin = document.getElementById('user-pin').value;
+        const btn = document.getElementById('btn-entrar');
+        const msg = document.getElementById('msg');
+
+        if(!user || !pin) {
+            msg.innerText = "Preencha todos os campos";
+            return;
+        }
+
+        btn.innerText = "VERIFICANDO...";
+        btn.disabled = true;
+
+        try {
+            // BUSCA O MERCHANT NA PLANILHA (TIPO CADASTRO OU LOG)
+            const res = await fetch(`${API}/search?merchant=${user}&tipo=CADASTRO`);
+            const dados = await res.json();
+
+            if(dados.length > 0) {
+                // Se achou o merchant, salvamos na sessão e redirecionamos
+                localStorage.setItem('mf_auth_user', user);
+                localStorage.setItem('mf_auth_active', 'true');
+                
+                msg.classList.remove('text-red-500');
+                msg.classList.add('text-[#80ff44]');
+                msg.innerText = "ACESSO LIBERADO!";
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+            } else {
+                msg.innerText = "MERCHANT NÃO LOCALIZADO";
+                btn.innerText = "TENTAR NOVAMENTE";
+                btn.disabled = false;
+            }
+        } catch (e) {
+            msg.innerText = "ERRO DE CONEXÃO";
+            btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>
