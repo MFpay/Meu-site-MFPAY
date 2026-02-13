@@ -2,95 +2,78 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>MFpay | Gateway Access</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MFpay | Gateway Auth</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .box-auth { background: #080808; border: 1px solid #111; padding: 40px; border-radius: 12px; width: 100%; max-width: 350px; text-align: center; }
-        input { background: #000 !important; border: 1px solid #1a1a1a !important; border-radius: 8px; color: #fff; padding: 15px; width: 100%; outline: none; margin-bottom: 12px; font-size: 13px; text-align: center; }
-        input:focus { border-color: #80ff44 !important; }
-        .btn-main { background: #80ff44; color: #000; font-weight: 800; width: 100%; padding: 15px; border-radius: 8px; font-size: 12px; text-transform: uppercase; cursor: pointer; border: none; }
-        .btn-main:hover { opacity: 0.9; }
-        #msg { font-size: 10px; font-weight: bold; margin-top: 15px; text-transform: uppercase; }
+        body { background: radial-gradient(circle at top right, #1a1f26, #0b0e11); font-family: 'Inter', sans-serif; color: #fff; }
+        .glass-card { background: rgba(22, 26, 30, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); border-radius: 28px; }
+        .input-mf { background: #0b0e11 !important; border: 1px solid #232a31 !important; padding: 16px 16px 16px 48px; width: 100%; border-radius: 14px; outline: none; transition: 0.3s; }
+        .input-mf:focus { border-color: #00e38c !important; box-shadow: 0 0 15px rgba(0, 227, 140, 0.1); }
+        .btn-mf { background: #00e38c; color: #0b0e11; font-weight: 800; padding: 16px; border-radius: 14px; width: 100%; transition: 0.3s; cursor: pointer; border: none; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+        .btn-mf:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0, 227, 140, 0.2); }
     </style>
 </head>
-<body>
-
-    <div class="box-auth">
-        <h1 class="text-2xl font-black italic text-[#80ff44] mb-8 tracking-tighter italic">MFPAY</h1>
+<body class="flex items-center justify-center h-screen px-4">
+    <div class="glass-card p-10 w-full max-w-[400px] text-center">
+        <div class="mb-10 flex flex-col items-center">
+            <div class="w-16 h-16 bg-[#00e38c]/10 rounded-2xl flex items-center justify-center mb-4">
+                <i data-lucide="shield-check" class="text-[#00e38c] w-10 h-10"></i>
+            </div>
+            <h1 class="text-4xl font-black italic text-[#00e38c] tracking-tighter">MFPAY</h1>
+            <p class="text-[10px] text-zinc-500 uppercase tracking-[0.5em] mt-2 font-bold">Secure Gateway Console</p>
+        </div>
         
-        <div id="form">
-            <input type="email" id="email" placeholder="E-mail do Merchant">
-            <input type="password" id="pass" placeholder="Senha (PIN 4 dígitos)" maxlength="8">
-            <button onclick="processarAcesso()" id="btn-acao" class="btn-main">Acessar Sistema</button>
+        <div class="space-y-4 text-left">
+            <div class="relative">
+                <i data-lucide="mail" class="absolute left-4 top-4 text-zinc-600 w-5 h-5"></i>
+                <input type="email" id="email" placeholder="E-mail do Merchant" class="input-mf">
+            </div>
+            <div class="relative">
+                <i data-lucide="lock" class="absolute left-4 top-4 text-zinc-600 w-5 h-5"></i>
+                <input type="password" id="pass" placeholder="Secret PIN" class="input-mf">
+            </div>
         </div>
 
-        <p id="msg"></p>
+        <button onclick="conectar()" id="btn-auth" class="btn-mf mt-10">Conectar à Rede</button>
+        <p id="feedback" class="mt-6 text-[10px] font-bold text-zinc-700 uppercase tracking-widest"></p>
     </div>
 
 <script>
+    lucide.createIcons();
     const API = "https://sheetdb.io/api/v1/n1iq28pv28d009pq";
 
-    async function processarAcesso() {
+    async function conectar() {
         const email = document.getElementById('email').value.toLowerCase().trim();
-        const senha = document.getElementById('pass').value;
-        const msg = document.getElementById('msg');
-        const btn = document.getElementById('btn-acao');
+        const pass = document.getElementById('pass').value;
+        const btn = document.getElementById('btn-auth');
+        if(!email || !pass) return;
 
-        if(!email || !senha) {
-            msg.style.color = "red";
-            msg.innerText = "Preencha todos os campos";
-            return;
-        }
-
-        btn.innerText = "VERIFICANDO...";
-        btn.disabled = true;
+        btn.innerText = "AUTENTICANDO..."; btn.disabled = true;
 
         try {
-            // 1. Tenta buscar se o merchant já existe
             const res = await fetch(`${API}/search?merchant=${email}&tipo=CADASTRO`);
             const data = await res.json();
 
             if (data.length > 0) {
-                // MERCHANT JÁ EXISTE: Verifica senha
-                // Usamos a coluna 'chave_pix' ou 'valor' para guardar a senha de forma simples, 
-                // ou criamos uma coluna nova. Aqui vou usar a coluna 'id' como senha para simplificar seu banco atual.
-                if (data[0].id === senha) {
-                    msg.style.color = "#80ff44";
-                    msg.innerText = "Sucesso! Entrando...";
+                if (data[0].id === pass) {
                     localStorage.setItem('mf_user', email);
                     window.location.href = 'dashboard.html';
                 } else {
-                    msg.style.color = "red";
-                    msg.innerText = "Senha Incorreta";
-                    btn.innerText = "Acessar Sistema";
-                    btn.disabled = false;
+                    document.getElementById('feedback').innerText = "Erro: Acesso Negado";
+                    btn.disabled = false; btn.innerText = "Conectar à Rede";
                 }
             } else {
-                // MERCHANT NÃO EXISTE: Criar conta nova agora
-                msg.style.color = "yellow";
-                msg.innerText = "Criando sua conta...";
-                
                 await fetch(API, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ data: [{ 
-                        id: senha, 
-                        merchant: email, 
-                        tipo: 'CADASTRO', 
-                        status: 'Aprovado', 
-                        data_hora: new Date().toLocaleString() 
-                    }]})
+                    body: JSON.stringify({ data: [{ id: pass, merchant: email, tipo: 'CADASTRO', status: 'Aprovado', data_hora: new Date().toLocaleString() }] })
                 });
-
                 localStorage.setItem('mf_user', email);
                 window.location.href = 'dashboard.html';
             }
-        } catch (e) {
-            msg.style.color = "red";
-            msg.innerText = "Erro de conexão";
-            btn.disabled = false;
-        }
+        } catch (e) { document.getElementById('feedback').innerText = "Falha de Conexão"; btn.disabled = false; }
     }
 </script>
 </body>
