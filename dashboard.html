@@ -3,129 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MFpay | Dashboard Real-Time</title>
+    <title>MFpay | Merchant Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; }
-        .sidebar { background: #080808; border-right: 1px solid #151515; height: 100vh; position: fixed; width: 260px; }
+        .sidebar { background: #080808; border-right: 1px solid #151515; height: 100vh; position: fixed; width: 260px; z-index: 50; }
         .main-content { margin-left: 260px; padding: 40px; }
-        .gateway-card { background: #0d0d0d; border-radius: 20px; border: 1px solid #1a1a1a; padding: 40px; }
-        .nav-btn { width: 100%; text-align: left; padding: 18px 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #444; border-left: 4px solid transparent; }
+        .gateway-card { background: #0d0d0d; border-radius: 20px; border: 1px solid #1a1a1a; padding: 40px; position: relative; overflow: hidden; }
+        .nav-btn { width: 100%; text-align: left; padding: 18px 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #444; border-left: 4px solid transparent; transition: 0.3s; }
         .nav-btn.active { color: #80ff44; border-left-color: #80ff44; background: #0f0f0f; }
-        input, select { background: #000 !important; border: 1px solid #222 !important; border-radius: 12px; color: #fff; padding: 15px; width: 100%; outline: none; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        input { background: #000 !important; border: 1px solid #222 !important; border-radius: 12px; padding: 15px; width: 100%; color: #fff; outline: none; transition: 0.3s; }
+        input:focus { border-color: #80ff44 !important; }
+        .tab-content { display: none; } .tab-content.active { display: block; }
+        .glow { position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: #80ff44; filter: blur(100px); opacity: 0.1; }
     </style>
 </head>
 <body>
 
     <aside class="sidebar py-10">
-        <div class="px-10 mb-12"><h1 class="font-black italic text-2xl text-[#80ff44]">MFpay</h1></div>
+        <div class="px-10 mb-12">
+            <h1 class="font-black italic text-2xl text-[#80ff44] tracking-tighter">MFPAY</h1>
+        </div>
         <nav>
-            <button onclick="openTab('dash')" class="nav-btn active" id="btn-dash">Dashboard</button>
-            <button onclick="openTab('extrato')" class="nav-btn" id="btn-extrato">Extrato</button>
-            <button onclick="openTab('deposito')" class="nav-btn">Injetar</button>
-            <button onclick="openTab('saque')" class="nav-btn text-[#80ff44]">Sacar</button>
+            <button onclick="openTab('dash', this)" class="nav-btn active">Visão Geral</button>
+            <button onclick="openTab('extrato', this)" class="nav-btn">Extrato Cloud</button>
+            <button onclick="openTab('deposito', this)" class="nav-btn">Injetar Saldo</button>
+            <button onclick="openTab('saque', this)" class="nav-btn text-[#80ff44]">Sacar Lucro</button>
+            <button onclick="logout()" class="nav-btn mt-20 text-red-900">Encerrar Sessão</button>
         </nav>
     </aside>
 
     <main class="main-content">
+        
         <div id="dash" class="tab-content active space-y-8">
-            <h2 class="text-4xl font-black italic uppercase">Saldo MF</h2>
-            <div class="gateway-card border-b-4 border-[#80ff44]">
-                <p class="text-gray-600 text-[10px] font-bold uppercase mb-2">Disponível para Saque</p>
-                <h2 id="bal" class="text-7xl font-black italic text-white tracking-tighter">R$ ---</h2>
+            <header>
+                <p class="text-gray-500 font-bold text-xs uppercase tracking-widest">Bem-vindo de volta,</p>
+                <h2 id="merchant-name" class="text-4xl font-black italic uppercase">Merchant</h2>
+            </header>
+
+            <div class="gateway-card">
+                <div class="glow"></div>
+                <p class="text-gray-600 text-[10px] font-bold uppercase mb-2 tracking-widest">Saldo Disponível (BRL)</p>
+                <h2 id="balance-display" class="text-7xl font-black italic tracking-tighter text-white">R$ 0,00</h2>
+                <div class="mt-6 flex items-center text-[#80ff44] text-xs font-bold uppercase">
+                    <span class="mr-2">●</span> Sincronizado com MFpay Cloud
+                </div>
             </div>
         </div>
 
+        <div id="deposito" class="tab-content max-w-xl mx-auto space-y-6 pt-10 text-center">
+            <h2 class="text-3xl font-black italic uppercase italic">Injetar Capital</h2>
+            <p class="text-gray-500 text-sm px-10">O saldo será liberado automaticamente após a compensação do PIX pela Cakto.</p>
+            <input type="number" id="val-dep" placeholder="Valor (ex: 100.00)">
+            <button onclick="gerarPixAutomatico()" class="w-full bg-[#80ff44] text-black font-black py-5 rounded-xl uppercase italic hover:scale-[1.02] transition-transform">Gerar Ordem de Pagamento</button>
+        </div>
+
         <div id="extrato" class="tab-content">
-            <h2 class="text-4xl font-black italic uppercase mb-8">Histórico Cloud</h2>
+            <h2 class="text-3xl font-black italic uppercase mb-8">Movimentações</h2>
             <div class="gateway-card p-0 overflow-hidden">
                 <table class="w-full text-left text-xs">
-                    <tbody id="lista-extrato"></tbody>
+                    <thead>
+                        <tr class="bg-white/5 uppercase font-bold text-gray-500">
+                            <th class="p-6">ID</th>
+                            <th class="p-6">Operação</th>
+                            <th class="p-6">Valor</th>
+                            <th class="p-6 text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="extrato-lista"></tbody>
                 </table>
             </div>
         </div>
 
-        <div id="deposito" class="tab-content max-w-xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black italic uppercase text-center">Injetar Saldo</h2>
-            <input type="number" id="val-dep" placeholder="Valor R$ 0,00">
-            <button onclick="enviarParaBanco('DEPOSITO')" class="w-full bg-[#80ff44] text-black font-black py-5 rounded-xl italic">CONFIRMAR NO BANCO</button>
+        <div id="saque" class="tab-content max-w-xl mx-auto space-y-6 pt-10">
+            <h2 class="text-3xl font-black italic uppercase text-center">Resgatar Lucro</h2>
+            <input type="number" id="val-saq" placeholder="Valor do Saque">
+            <input type="text" id="pix-key" placeholder="Sua Chave PIX">
+            <button onclick="solicitarSaque()" class="w-full bg-white text-black font-black py-5 rounded-xl uppercase italic">Confirmar Retirada</button>
         </div>
 
-        <div id="saque" class="tab-content max-w-xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black italic uppercase text-center">Liquidação Pix</h2>
-            <input type="number" id="val-saq" placeholder="Valor R$ 0,00">
-            <input type="text" id="pix-dest" placeholder="Chave Pix">
-            <button onclick="enviarParaBanco('SAQUE')" class="w-full bg-[#80ff44] text-black font-black py-5 rounded-xl italic">SOLICITAR RESGATE</button>
-        </div>
     </main>
 
 <script>
     const API = "https://sheetdb.io/api/v1/n1iq28pv28d009pq";
-    const user = "MF";
+    const user = localStorage.getItem('mf_user');
+    
+    // Proteção: Se não logou, volta pro login
+    if(!user || localStorage.getItem('mf_logged') !== 'true') window.location.href = 'index.html';
 
-    function openTab(t) {
+    function openTab(tabId, btn) {
         document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
-        document.getElementById(t).classList.add('active');
-        if(t === 'extrato') carregarExtrato();
+        document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+        if(tabId === 'extrato') carregarHistorico();
     }
 
-    async function atualizarSaldo() {
+    async function fetchSaldo() {
         const res = await fetch(`${API}/search?merchant=${user}&status=Aprovado`);
         const dados = await res.json();
-        let saldo = 0;
+        let total = 0;
         dados.forEach(i => {
-            if(i.tipo === 'DEPOSITO') saldo += parseFloat(i.valor);
-            if(i.tipo === 'SAQUE') saldo -= parseFloat(i.valor);
+            if(i.tipo === 'DEPOSITO') total += parseFloat(i.valor);
+            if(i.tipo === 'SAQUE') total -= parseFloat(i.valor);
         });
-        document.getElementById('bal').innerText = `R$ ${saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        document.getElementById('balance-display').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
     }
 
-    async function carregarExtrato() {
+    async function gerarPixAutomatico() {
+        const valor = document.getElementById('val-dep').value;
+        const clientId = "L1rDTK0E0379elxfFSYvoTU5xQxBRBpZ5LA7KJZD"; // Sua Chave Cakto
+        const idTransacao = "MF" + Date.now();
+
+        if(!valor || valor <= 0) return alert("Valor inválido");
+
+        // Registra a intenção no banco
+        await fetch(API, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ data: [{ 
+                id: idTransacao, merchant: user, tipo: 'DEPOSITO', 
+                valor: valor, status: 'Pendente', data_hora: new Date().toLocaleString() 
+            }]})
+        });
+
+        // Redireciona para o checkout da MFpay (Powered by Cakto)
+        window.location.href = `https://pay.cakto.com.br/checkout?client_id=${clientId}&value=${valor}&external_id=${idTransacao}`;
+    }
+
+    async function carregarHistorico() {
         const res = await fetch(`${API}/search?merchant=${user}`);
         const dados = await res.json();
-        document.getElementById('lista-extrato').innerHTML = dados.reverse().map(i => `
+        document.getElementById('extrato-lista').innerHTML = dados.reverse().map(i => `
             <tr class="border-t border-white/5">
-                <td class="p-6 font-mono text-gray-500">#${i.id}</td>
-                <td class="p-6 font-black uppercase">${i.tipo}</td>
-                <td class="p-6">R$ ${i.valor}</td>
-                <td class="p-6 text-right font-black ${i.status === 'Aprovado' ? 'text-[#80ff44]' : 'text-yellow-500'}">${i.status}</td>
+                <td class="p-6 text-gray-500 font-mono">#${i.id}</td>
+                <td class="p-6 font-black uppercase text-[10px]">${i.tipo}</td>
+                <td class="p-6 font-bold">R$ ${i.valor}</td>
+                <td class="p-6 text-right font-black italic ${i.status === 'Aprovado' ? 'text-[#80ff44]' : 'text-yellow-500'}">${i.status}</td>
             </tr>
         `).join('');
     }
 
-    async function enviarParaBanco(tipo) {
-        const val = document.getElementById(tipo === 'DEPOSITO' ? 'val-dep' : 'val-saq').value;
-        const chave = document.getElementById('pix-dest')?.value || '';
-        
-        if(!val || val <= 0) return alert("Valor inválido");
-
-        const payload = {
-            id: Date.now(),
-            merchant: user,
-            tipo: tipo,
-            valor: val,
-            status: 'Pendente',
-            chave_pix: chave,
-            data_hora: new Date().toLocaleString('pt-BR')
-        };
-
-        const res = await fetch(API, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ data: [payload] })
-        });
-
-        if(res.ok) {
-            alert("Enviado para Nuvem MFpay!");
-            location.reload();
-        }
+    function logout() {
+        localStorage.clear();
+        window.location.href = 'index.html';
     }
 
-    setInterval(atualizarSaldo, 5000);
-    atualizarSaldo();
+    document.getElementById('merchant-name').innerText = user;
+    setInterval(fetchSaldo, 5000); // Atualiza saldo a cada 5 segundos
+    fetchSaldo();
 </script>
 </body>
 </html>
-
