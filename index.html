@@ -2,37 +2,96 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>MFpay | Merchant Access</title>
+    <title>MFpay | Gateway Access</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .input-auth { background: #080808 !important; border: 1px solid #111 !important; border-radius: 8px; color: #fff; padding: 15px; width: 100%; outline: none; margin-bottom: 10px; font-size: 13px; }
-        .input-auth:focus { border-color: #80ff44 !important; }
-        .btn-auth { background: #80ff44; color: #000; font-weight: 800; width: 100%; padding: 15px; border-radius: 8px; font-size: 12px; text-transform: uppercase; transition: 0.2s; }
-        .btn-auth:hover { opacity: 0.9; transform: scale(0.98); }
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .box-auth { background: #080808; border: 1px solid #111; padding: 40px; border-radius: 12px; width: 100%; max-width: 350px; text-align: center; }
+        input { background: #000 !important; border: 1px solid #1a1a1a !important; border-radius: 8px; color: #fff; padding: 15px; width: 100%; outline: none; margin-bottom: 12px; font-size: 13px; text-align: center; }
+        input:focus { border-color: #80ff44 !important; }
+        .btn-main { background: #80ff44; color: #000; font-weight: 800; width: 100%; padding: 15px; border-radius: 8px; font-size: 12px; text-transform: uppercase; cursor: pointer; border: none; }
+        .btn-main:hover { opacity: 0.9; }
+        #msg { font-size: 10px; font-weight: bold; margin-top: 15px; text-transform: uppercase; }
     </style>
 </head>
 <body>
-    <div class="w-full max-w-xs text-center">
-        <h1 class="text-2xl font-black italic text-[#80ff44] mb-8 tracking-tighter">MFPAY<span class="text-white ml-1 text-xs not-italic font-light">GATEWAY</span></h1>
-        <input type="text" id="user" class="input-auth" placeholder="Client ID">
-        <input type="password" id="pin" class="input-auth" placeholder="Secret Key">
-        <button onclick="auth()" class="btn-auth">Acessar Console</button>
-        <p id="err" class="text-[9px] text-red-600 mt-4 font-bold uppercase"></p>
+
+    <div class="box-auth">
+        <h1 class="text-2xl font-black italic text-[#80ff44] mb-8 tracking-tighter italic">MFPAY</h1>
+        
+        <div id="form">
+            <input type="email" id="email" placeholder="E-mail do Merchant">
+            <input type="password" id="pass" placeholder="Senha (PIN 4 dígitos)" maxlength="8">
+            <button onclick="processarAcesso()" id="btn-acao" class="btn-main">Acessar Sistema</button>
+        </div>
+
+        <p id="msg"></p>
     </div>
 
-    <script>
-        const API = "https://sheetdb.io/api/v1/n1iq28pv28d009pq";
-        async function auth() {
-            const u = document.getElementById('user').value.toUpperCase();
-            if(!u) return;
-            const res = await fetch(`${API}/search?merchant=${u}&tipo=CADASTRO`);
-            const d = await res.json();
-            if(d.length > 0) {
-                localStorage.setItem('mf_user', u);
-                window.location.href = 'dashboard.html';
-            } else { document.getElementById('err').innerText = "Credenciais Inválidas"; }
+<script>
+    const API = "https://sheetdb.io/api/v1/n1iq28pv28d009pq";
+
+    async function processarAcesso() {
+        const email = document.getElementById('email').value.toLowerCase().trim();
+        const senha = document.getElementById('pass').value;
+        const msg = document.getElementById('msg');
+        const btn = document.getElementById('btn-acao');
+
+        if(!email || !senha) {
+            msg.style.color = "red";
+            msg.innerText = "Preencha todos os campos";
+            return;
         }
-    </script>
+
+        btn.innerText = "VERIFICANDO...";
+        btn.disabled = true;
+
+        try {
+            // 1. Tenta buscar se o merchant já existe
+            const res = await fetch(`${API}/search?merchant=${email}&tipo=CADASTRO`);
+            const data = await res.json();
+
+            if (data.length > 0) {
+                // MERCHANT JÁ EXISTE: Verifica senha
+                // Usamos a coluna 'chave_pix' ou 'valor' para guardar a senha de forma simples, 
+                // ou criamos uma coluna nova. Aqui vou usar a coluna 'id' como senha para simplificar seu banco atual.
+                if (data[0].id === senha) {
+                    msg.style.color = "#80ff44";
+                    msg.innerText = "Sucesso! Entrando...";
+                    localStorage.setItem('mf_user', email);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    msg.style.color = "red";
+                    msg.innerText = "Senha Incorreta";
+                    btn.innerText = "Acessar Sistema";
+                    btn.disabled = false;
+                }
+            } else {
+                // MERCHANT NÃO EXISTE: Criar conta nova agora
+                msg.style.color = "yellow";
+                msg.innerText = "Criando sua conta...";
+                
+                await fetch(API, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ data: [{ 
+                        id: senha, 
+                        merchant: email, 
+                        tipo: 'CADASTRO', 
+                        status: 'Aprovado', 
+                        data_hora: new Date().toLocaleString() 
+                    }]})
+                });
+
+                localStorage.setItem('mf_user', email);
+                window.location.href = 'dashboard.html';
+            }
+        } catch (e) {
+            msg.style.color = "red";
+            msg.innerText = "Erro de conexão";
+            btn.disabled = false;
+        }
+    }
+</script>
 </body>
 </html>
