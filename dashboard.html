@@ -7,6 +7,7 @@
         body { background: #020617; color: white; font-family: sans-serif; }
         .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
         #lock-screen { background: rgba(0,0,0,0.98); z-index: 9999; display: none; }
+        input::placeholder { color: #475569; }
     </style>
 </head>
 <body class="p-6 flex flex-col items-center">
@@ -28,45 +29,75 @@
         </div>
 
         <div class="glass p-8 rounded-[40px] space-y-4">
+            <p class="text-[9px] text-center text-slate-500 font-bold uppercase">Valor da Operação</p>
             <input type="number" id="val" placeholder="0.00" class="bg-transparent text-white text-5xl font-black text-center w-full outline-none">
-            <input type="text" id="link" placeholder="Link do Comprovante" class="w-full bg-slate-900/50 p-4 rounded-2xl outline-none text-[10px] text-center border border-slate-800">
-            <div class="grid grid-cols-2 gap-4">
-                <button onclick="enviar('DEP')" class="bg-green-500 text-black font-black py-5 rounded-3xl text-[11px] uppercase">Depositar</button>
-                <button onclick="enviar('SAQ')" class="glass text-white font-black py-5 rounded-3xl text-[11px] uppercase">Sacar (5%)</button>
+            
+            <div id="campos-pix" class="space-y-2">
+                <select id="t-pix" class="w-full bg-slate-900/50 p-4 rounded-2xl outline-none text-[10px] text-white border border-slate-800 uppercase font-bold">
+                    <option value="CPF">Chave PIX: CPF</option>
+                    <option value="CELULAR">Chave PIX: Celular</option>
+                    <option value="EMAIL">Chave PIX: E-mail</option>
+                    <option value="ALEATORIA">Chave Aleatória</option>
+                </select>
+                <input type="text" id="c-pix-user" placeholder="Digite sua Chave PIX" class="w-full bg-slate-900/50 p-4 rounded-2xl outline-none text-[10px] text-center border border-slate-800">
             </div>
-            <p id="pix" class="text-[9px] text-center text-slate-500 font-bold uppercase mt-2"></p>
+
+            <input type="text" id="link" placeholder="Link do Comprovante (Opcional)" class="w-full bg-slate-900/50 p-4 rounded-2xl outline-none text-[10px] text-center border border-slate-800">
+            
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="enviar('DEP')" class="bg-green-500 text-black font-black py-5 rounded-3xl text-[11px] uppercase hover:scale-105 transition-all">Depositar</button>
+                <button onclick="enviar('SAQ')" class="glass text-white font-black py-5 rounded-3xl text-[11px] uppercase hover:bg-white/10 transition-all">Sacar (5%)</button>
+            </div>
+            <p id="info-taxa" class="text-[8px] text-center text-slate-600 font-bold uppercase italic">Taxa de R$ 5,00 aplicada em todos os saques</p>
         </div>
     </div>
 
 <script>
-    const user = localStorage.getItem('currentUser');
+    const user = localStorage.getItem('currentUser') || 'Convidado';
     document.getElementById('display-user').innerText = user;
 
     function enviar(t) {
         const v = document.getElementById('val').value;
         const l = document.getElementById('link').value;
-        if(!v || v <= 0) return alert("Valor inválido");
-        localStorage.setItem('mf_ped', JSON.stringify({tipo:t, valor:v, user:user, comprovante:l}));
-        alert("Enviado para aprovação!");
+        const chave = document.getElementById('c-pix-user').value;
+        const tipo = document.getElementById('t-pix').value;
+
+        if(!v || v <= 0) return alert("Insira um valor válido");
+        
+        // Se for saque, exige a chave PIX
+        if(t === 'SAQ' && !chave) return alert("Informe a sua Chave PIX para receber o pagamento");
+
+        // MEMORIZANDO E ENVIANDO PARA O ADMIN
+        const pedido = {
+            tipo: t, 
+            valor: v, 
+            user: user, 
+            comprovante: l,
+            pix_key: chave, // Sincronizado com o p.pix_key do Admin
+            pix_type: tipo  // Sincronizado com o p.pix_type do Admin
+        };
+
+        localStorage.setItem('mf_ped', JSON.stringify(pedido));
+        alert("Solicitação enviada! Aguarde a aprovação do Admin.");
     }
 
-    // Sincronização em Tempo Real (O coração do sistema)
+    // Sincronização em Tempo Real
     setInterval(() => {
-        // Verifica Lockdown
+        // 1. Verifica Lockdown
         const isLocked = localStorage.getItem('mf_lockdown') === 'true';
         document.getElementById('lock-screen').style.display = isLocked ? 'flex' : 'none';
 
-        // Verifica se o Admin baniu esse usuário agora
+        // 2. Verifica Blacklist
         const bans = JSON.parse(localStorage.getItem('mf_blacklist') || '[]');
-        if(bans.includes(user)) {
+        if(bans.includes(user.toLowerCase())) {
+            alert("Sua conta foi desativada por violação dos termos.");
             localStorage.removeItem('currentUser');
             location.href = 'index.html';
         }
 
-        // Atualiza Saldo e Chave PIX
+        // 3. Atualiza Saldo
         const s = parseFloat(localStorage.getItem('bal_'+user)||0);
         document.getElementById('bal').innerText = `R$ ${s.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
-        document.getElementById('pix').innerText = "CHAVE PIX: " + (localStorage.getItem('mf_pix') || 'DEFINIR NO ADMIN');
     }, 1000);
 </script>
 </body>
