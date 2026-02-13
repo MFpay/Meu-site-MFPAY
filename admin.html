@@ -2,92 +2,57 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>MF PAY | MASTER CONTROL</title>
+    <title>MF PAY | MASTER ADMIN</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { background: #050505; color: #f1f5f9; font-family: 'Inter', sans-serif; }
-        .sidebar { background: #0a0a0a; border-right: 1px solid #1a1a1a; height: 100vh; position: fixed; width: 260px; display: none; }
-        .main-content { margin-left: 260px; padding: 40px; display: none; }
-        .admin-card { background: #0f0f0f; border: 1px solid #1e293b; border-radius: 16px; }
-        .nav-btn { width: 100%; text-align: left; padding: 15px 25px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #444; transition: 0.3s; border-left: 4px solid transparent; italic; }
-        .nav-btn.active { color: #80ff44; background: #111; border-left-color: #80ff44; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        #login-screen { height: 100vh; display: flex; align-items: center; justify-content: center; background: #000; }
-        .login-box { background: #0a0a0a; padding: 40px; border-radius: 24px; border: 1px solid #1a1a1a; width: 100%; max-width: 400px; text-align: center; }
-        input { background: #111 !important; border: 1px solid #222 !important; color: #fff; padding: 15px; border-radius: 12px; width: 100%; outline: none; margin-bottom: 15px; }
+        body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; }
+        .sidebar { background: #0a0a0a; height: 100vh; position: fixed; width: 260px; border-right: 1px solid #111; }
+        .main-content { margin-left: 260px; padding: 40px; }
+        .admin-card { background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 20px; }
+        .nav-btn { width: 100%; text-align: left; padding: 15px 30px; font-size: 11px; font-weight: 800; color: #444; text-transform: uppercase; }
+        .nav-btn.active { color: #80ff44; border-right: 4px solid #80ff44; }
+        .btn-apr { background: #80ff44; color: #000; font-weight: 900; }
     </style>
 </head>
 <body>
 
-    <div id="login-screen">
-        <div class="login-box">
-            <h1 class="text-2xl font-black italic text-[#80ff44] mb-8 uppercase tracking-tighter text-center">MF PAY <span class="text-white">ADMIN</span></h1>
-            <input type="text" id="adm-user" placeholder="Usuário Admin">
-            <input type="password" id="adm-pass" placeholder="Senha Master">
-            <button onclick="autenticar()" class="w-full bg-[#80ff44] text-black font-black py-4 rounded-xl uppercase italic">Entrar no Sistema</button>
-            <p id="login-err" class="text-red-500 text-[10px] mt-4 font-bold uppercase hidden">Acesso Negado</p>
-        </div>
-    </div>
-
-    <aside id="sidebar" class="sidebar py-10 flex flex-col justify-between">
+    <aside class="sidebar py-10 flex flex-col justify-between">
         <div>
-            <div class="px-8 mb-10 text-center"><h1 class="text-xl font-black italic text-[#80ff44] uppercase tracking-tighter italic">ADMIN MASTER</h1></div>
+            <h1 class="text-center text-xl font-black italic text-[#80ff44] mb-12 italic uppercase tracking-tighter">MF PAY ADMIN</h1>
             <nav class="space-y-1">
-                <button onclick="openTab(event, 'fila')" class="nav-btn active">Fila de Pedidos</button>
-                <button onclick="openTab(event, 'mensagens')" class="nav-btn">Mensagens</button>
-                <button onclick="openTab(event, 'config')" class="nav-btn">Configurações</button>
+                <button onclick="openTab('fila')" id="btn-fila" class="nav-btn active">Fila Ativa</button>
+                <button onclick="openTab('mensagens')" id="btn-msg" class="nav-btn">Mensagens</button>
             </nav>
         </div>
-        <div class="px-8">
-             <button onclick="toggleLockdown()" id="lockBtn" class="w-full py-4 rounded-xl font-black text-[10px] uppercase italic transition-all"></button>
-             <button onclick="logout()" class="w-full text-gray-700 text-[9px] font-bold uppercase mt-4">Encerrar Sessão</button>
+        <div class="px-8 space-y-4">
+            <button onclick="toggleLockdown()" id="lockBtn" class="w-full py-4 rounded-xl font-black text-[10px] uppercase italic"></button>
         </div>
     </aside>
 
-    <main id="main-content" class="main-content">
-        <div id="fila" class="tab-content active">
-            <h2 class="text-3xl font-black italic uppercase mb-8">Processamento Ativo</h2>
-            <div class="admin-card overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-[#111] text-[10px] font-black uppercase text-gray-500">
-                        <tr><th class="p-5">User</th><th class="p-5">Operação</th><th class="p-5">Montante</th><th class="p-5">Comprovante/Chave</th><th class="p-5">Ações</th></tr>
-                    </thead>
-                    <tbody id="lista-pedidos" class="text-sm"></tbody>
-                </table>
+    <main class="main-content">
+        <div id="fila" class="tab-content">
+            <div class="flex justify-between items-end mb-10">
+                <h2 class="text-4xl font-black italic uppercase">Fila de Operações</h2>
+                <div class="text-right">
+                    <p class="text-[9px] font-bold text-gray-600 uppercase">Volume em Espera</p>
+                    <h3 id="vol-esp" class="text-2xl font-black italic">R$ 0,00</h3>
+                </div>
             </div>
-        </div>
-
-        <div id="mensagens" class="tab-content">
-            <h2 class="text-3xl font-black italic uppercase mb-8">Chat Interno</h2>
-            <div id="lista-mensagens" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-        </div>
-
-        <div id="config" class="tab-content">
-            <h2 class="text-3xl font-black italic uppercase mb-8">Master Pix</h2>
-            <div class="admin-card p-10 max-w-xl">
-                <input type="text" id="master-pix-input" placeholder="Chave Pix Master">
-                <button onclick="salvarPix()" class="w-full bg-[#80ff44] text-black font-black py-4 rounded-xl uppercase italic mt-4">Salvar Chave Global</button>
+            <div class="admin-card overflow-hidden">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-black/40 font-black uppercase text-gray-600 tracking-widest">
+                        <tr><th class="p-6">Merchant</th><th class="p-6">Tipo</th><th class="p-6">Valor</th><th class="p-6">Ações</th></tr>
+                    </thead>
+                    <tbody id="lista-pedidos"></tbody>
+                </table>
             </div>
         </div>
     </main>
 
-<script>
-    function autenticar() {
-        const u = document.getElementById('adm-user').value;
-        const p = document.getElementById('adm-pass').value;
-        if(u === 'admin' && p === 'mestre123') {
-            sessionStorage.setItem('adm_logado', 'true');
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('sidebar').style.display = 'flex';
-            document.getElementById('main-content').style.display = 'block';
-            renderPedidos();
-        } else { document.getElementById('login-err').classList.remove('hidden'); }
-    }
+    <audio id="audio-cash" src="https://www.myinstants.com/media/sounds/cash-register-purchase.mp3"></audio>
 
-    function logout() { sessionStorage.removeItem('adm_logado'); location.reload(); }
+<script>
+    let ultimoPedido = null;
 
     function toggleLockdown() {
         const s = localStorage.getItem('mf_lockdown') === 'true';
@@ -98,7 +63,6 @@
         const ped = JSON.parse(localStorage.getItem('mf_ped'));
         if(!ped) return;
 
-        // SINCRONIZANDO EXTRATO DO CLIENTE
         const hist = JSON.parse(localStorage.getItem('hist_' + ped.user) || '[]');
         if (hist.length > 0) {
             hist[hist.length - 1].status = (acao === 'APR') ? 'Aprovado' : 'Recusado';
@@ -107,48 +71,42 @@
 
         if (acao === 'APR') {
             const current = parseFloat(localStorage.getItem('bal_'+ped.user) || 0);
-            const val = parseFloat(ped.valor);
-            localStorage.setItem('bal_'+ped.user, ped.tipo === 'DEP' ? (current + val) : (current - val));
+            localStorage.setItem('bal_'+ped.user, (ped.tipo === 'DEP' ? current + parseFloat(ped.valor) : current - parseFloat(ped.valor)).toFixed(2));
+            document.getElementById('audio-cash').play();
         }
 
         localStorage.removeItem('mf_ped');
         renderPedidos();
-        alert("STATUS ATUALIZADO NO EXTRATO DO CLIENTE!");
     }
 
     function renderPedidos() {
         const lista = document.getElementById('lista-pedidos');
         const ped = JSON.parse(localStorage.getItem('mf_ped'));
-        lista.innerHTML = ped ? '' : '<tr><td colspan="5" class="p-10 text-center text-gray-700">Aguardando pedidos...</td></tr>';
+        lista.innerHTML = ped ? '' : '<tr><td colspan="4" class="p-20 text-center font-bold text-gray-800 uppercase italic">Rede em Repouso</td></tr>';
+        
         if(ped) {
+            if(!ultimoPedido || ultimoPedido.timestamp !== ped.timestamp) {
+                document.getElementById('audio-cash').play(); // Som ao entrar pedido novo
+                ultimoPedido = ped;
+            }
+            document.getElementById('vol-esp').innerText = `R$ ${parseFloat(ped.valor).toLocaleString('pt-BR')}`;
             lista.innerHTML = `<tr class="border-t border-white/5">
-                <td class="p-5 font-black italic">${ped.user}</td>
-                <td class="p-5 font-bold uppercase text-[10px]">${ped.tipo === 'DEP' ? 'Entrada' : 'Saque'}</td>
-                <td class="p-5 text-[#80ff44] font-black italic">R$ ${parseFloat(ped.valor).toLocaleString('pt-BR')}</td>
-                <td class="p-5">${ped.tipo === 'DEP' ? `<a href="${ped.comprovante}" target="_blank" class="underline text-blue-400">Ver Prova</a>` : ped.cli_pix_chave}</td>
-                <td class="p-5 space-x-2">
-                    <button onclick="decidir('APR')" class="bg-[#80ff44] text-black px-3 py-1 rounded-lg text-[9px] font-black uppercase">Aprovar</button>
-                    <button onclick="decidir('REC')" class="bg-red-500 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase">Negar</button>
+                <td class="p-6 font-black italic uppercase">${ped.user}</td>
+                <td class="p-6 font-bold uppercase text-[10px]">${ped.tipo}</td>
+                <td class="p-6 text-[#80ff44] font-black italic text-lg">R$ ${parseFloat(ped.valor).toLocaleString('pt-BR')}</td>
+                <td class="p-6 space-x-2">
+                    <button onclick="decidir('APR')" class="btn-apr px-4 py-2 rounded-lg text-[9px] uppercase">Aprovar</button>
+                    <button onclick="decidir('REC')" class="bg-red-600 px-4 py-2 rounded-lg text-[9px] font-black uppercase italic">Negar</button>
                 </td>
             </tr>`;
         }
     }
 
-    function salvarPix() { localStorage.setItem('mf_pix', document.getElementById('master-pix-input').value); alert("PIX SALVO!"); }
-    function openTab(evt, t) {
-        const tabs = document.getElementsByClassName("tab-content");
-        for (let i = 0; i < tabs.length; i++) tabs[i].style.display = "none";
-        document.getElementById(t).style.display = "block";
-    }
-
     setInterval(() => {
-        if(sessionStorage.getItem('adm_logado') === 'true') {
-            const s = localStorage.getItem('mf_lockdown') === 'true';
-            const b = document.getElementById('lockBtn');
-            b.innerText = s ? "DESTRAVAR SISTEMA" : "LOCKDOWN GLOBAL";
-            b.style.background = s ? "#ef4444" : "#1a1a1a";
-            renderPedidos();
-        }
+        const s = localStorage.getItem('mf_lockdown') === 'true';
+        document.getElementById('lockBtn').innerText = s ? "DESTRAVAR GATEWAY" : "LOCKDOWN GLOBAL";
+        document.getElementById('lockBtn').style.background = s ? "#ef4444" : "#1a1a1a";
+        renderPedidos();
     }, 1500);
 </script>
 </body>
