@@ -1,65 +1,41 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8"><title>Acesso | MF PAY</title>
+    <meta charset="UTF-8"><title>Acesso Restrito | MF PAY</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #020617; background-image: radial-gradient(#1e293b 0.5px, transparent 0.5px); background-size: 30px 30px; font-family: sans-serif; }
-        .neon-input:focus { border-color: #22c55e; box-shadow: 0 0 15px rgba(34, 197, 94, 0.2); }
+        body { background: #020617; font-family: 'Inter', sans-serif; background-image: radial-gradient(#1e293b 0.5px, transparent 0.5px); background-size: 30px 30px; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
-    <div class="w-full max-w-sm bg-[#0f172a]/90 backdrop-blur-xl p-8 rounded-[32px] border border-slate-800 shadow-2xl">
+    <div class="w-full max-w-sm glass p-10 rounded-[40px] shadow-2xl">
         <div class="text-center mb-10">
-            <h1 class="text-3xl font-black text-white italic tracking-tighter">MF<span class="text-green-500">PAY</span></h1>
-            <div class="flex justify-center gap-6 mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-800 pb-4">
-                <button onclick="tab('login')" id="t-login" class="text-green-500 border-b-2 border-green-500 pb-1">Entrar</button>
-                <button onclick="tab('cad')" id="t-cad" class="pb-1">Cadastrar</button>
-            </div>
+            <h1 class="text-3xl font-black text-white italic tracking-tighter uppercase">MF<span class="text-green-500">PAY</span></h1>
+            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-2">Segurança Soberana Ativa</p>
         </div>
-
-        <div id="box-login" class="space-y-4">
-            <input type="text" id="u" placeholder="USUÁRIO" class="w-full bg-[#1e293b] border border-slate-700 p-4 rounded-2xl text-white outline-none neon-input font-bold text-xs uppercase transition-all">
-            <input type="password" id="p" placeholder="SENHA" class="w-full bg-[#1e293b] border border-slate-700 p-4 rounded-2xl text-white outline-none neon-input font-bold text-xs uppercase transition-all">
-            <button onclick="auth()" class="w-full bg-green-500 text-black font-black py-4 rounded-2xl hover:bg-green-400 transition shadow-lg shadow-green-500/20 uppercase italic text-xs">Acessar Painel</button>
-        </div>
-
-        <div id="box-cad" class="hidden space-y-4">
-            <input type="text" id="nu" placeholder="ESCOLHA UM USUÁRIO" class="w-full bg-[#1e293b] border border-slate-700 p-4 rounded-2xl text-white outline-none text-xs font-bold uppercase">
-            <input type="password" id="np" placeholder="ESCOLHA UMA SENHA" class="w-full bg-[#1e293b] border border-slate-700 p-4 rounded-2xl text-white outline-none text-xs font-bold uppercase">
-            <button onclick="registrar()" class="w-full bg-white text-black font-black py-4 rounded-2xl uppercase text-xs italic">Criar Conta e Entrar</button>
+        <div class="space-y-4">
+            <input type="text" id="u" placeholder="USUÁRIO" class="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-2xl text-white outline-none focus:border-green-500 font-bold text-xs uppercase">
+            <input type="password" id="p" placeholder="SENHA" class="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-2xl text-white outline-none focus:border-green-500 font-bold text-xs uppercase">
+            <button onclick="login()" class="w-full bg-green-500 text-black font-black py-4 rounded-2xl hover:brightness-110 transition uppercase italic text-xs shadow-lg shadow-green-500/20">Entrar no Sistema</button>
         </div>
     </div>
-
 <script>
-    function tab(t){
-        document.getElementById('box-login').classList.toggle('hidden', t !== 'login');
-        document.getElementById('box-cad').classList.toggle('hidden', t !== 'cad');
-        document.getElementById('t-login').className = t === 'login' ? "text-green-500 border-b-2 border-green-500 pb-1" : "pb-1 text-slate-500";
-        document.getElementById('t-cad').className = t === 'cad' ? "text-green-500 border-b-2 border-green-500 pb-1" : "pb-1 text-slate-500";
-    }
-
-    function auth(){
+    function login() {
         const u = document.getElementById('u').value.toLowerCase();
         const p = document.getElementById('p').value;
+        const bans = JSON.parse(localStorage.getItem('mf_blacklist') || '[]');
+
+        if(bans.includes(u)) return alert("⚠️ ACESSO NEGADO: Usuário banido por fraude.");
+        
         if(u === 'admin' && p === '2026_MASTER_MFPAY') {
             localStorage.setItem('role', 'MASTER');
             location.href = 'admin.html';
-        } else if(u !== '' && p !== '') {
+        } else if(u !== '') {
             localStorage.setItem('role', 'USER');
             localStorage.setItem('currentUser', u);
             location.href = 'dashboard.html';
-        } else { alert("Preencha os campos!"); }
-    }
-
-    function registrar(){
-        const u = document.getElementById('nu').value.toLowerCase();
-        const p = document.getElementById('np').value;
-        if(u && p) {
-            localStorage.setItem('role', 'USER');
-            localStorage.setItem('currentUser', u);
-            location.href = 'dashboard.html';
-        } else { alert("Defina usuário e senha!"); }
+        }
     }
 </script>
 </body>
