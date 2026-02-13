@@ -1,18 +1,103 @@
-async function enviarOperacao(t) {
-    const v = parseFloat(document.getElementById(t === 'DEP' ? 'val-dep' : 'val-saq').value);
-    
-    const { error } = await supabaseClient.from('transacoes').insert([{
-        tipo: t,
-        valor: v,
-        merchant: 'MF',
-        pix_chave: document.getElementById('chave-pix')?.value || '',
-        comprovante: document.getElementById('link-comp')?.value || ''
-    }]);
+<script>
+    // --- CONEXÃO SOBERANA MFpay ---
+    const API_URL = 'https://sheetdb.io/api/v1/q28pv28d009pq';
+    const user = "MF";
+    let lastOpTime = 0;
 
-    if (error) {
-        alert("Erro de conexão: " + error.message);
-    } else {
-        alert("ENVIADO COM SUCESSO!");
+    // BLOQUEIO DE SEGURANÇA: Só entra se estiver autenticado no Portal
+    if(sessionStorage.getItem('auth_mf') !== 'cliente_verificado' && sessionStorage.getItem('auth_mf') !== 'cliente_ativo') {
+        window.location.href = 'index.html';
+    }
+
+    async function carregarDadosGlobais() {
+        try {
+            const res = await fetch(API_URL);
+            const dados = await res.json();
+            
+            // Busca o saldo atual na planilha (Coluna 'valor' onde tipo é 'SALDO')
+            // Nota: No admin você pode criar uma linha fixa para saldo
+            const contaUser = dados.find(i => i.merchant === user && i.tipo === 'SALDO');
+            const saldoAtual = contaUser ? parseFloat(contaUser.valor) : 0;
+            
+            // Atualiza o Histórico/Extrato
+            const meuHist = dados.filter(i => i.merchant === user && i.tipo !== 'SALDO');
+            renderizarExtratoReal(meuHist);
+
+            // Atualiza Interface de Capital
+            document.getElementById('bal').innerText = `R$ ${saldoAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            
+            // Lógica de Tiers Soberanos
+            atualizarTiers(saldoAtual);
+
+        } catch (e) { console.error("Falha na sincronização MFpay"); }
+    }
+
+    function renderizarExtratoReal(dados) {
+        document.getElementById('lista-extrato').innerHTML = dados.reverse().slice(0, 10).map(i => `
+            <tr class="border-t border-white/5 hover:bg-white/5 transition">
+                <td class="p-8 text-gray-500 font-mono">#${i.id}</td>
+                <td class="p-8">${i.data_hora || '---'}</td>
+                <td class="p-8"><span class="uppercase ${i.tipo === 'SAQUE' ? 'text-red-400' : 'text-blue-400'}">${i.tipo}</span></td>
+                <td class="p-8 text-white font-black">R$ ${i.valor}</td>
+                <td class="p-8 text-right font-black">
+                    <span class="${i.status === 'Aprovado' ? 'text-[#80ff44]' : (i.status === 'Recusado' ? 'text-red-500' : 'text-yellow-500')}">
+                        ${i.status.toUpperCase()}
+                    </span>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    async function enviarOperacao(t) {
+        const v = document.getElementById(t === 'DEP' ? 'val-dep' : 'val-saq').value;
+        const link = document.getElementById('link-comp').value;
+        const pin = document.getElementById('pin-saque').value;
+        const agora = Date.now();
+
+        if(agora - lastOpTime < 30000) return alert("ANTIFRAUDE: Aguarde 30s");
+        if(!v || v <= 0) return alert("VALOR INVÁLIDO");
+
+        // Validação de Segurança Bancária
+        if(t === 'SAQ' && pin !== (localStorage.getItem('pin_'+user) || '1234')) {
+            return alert("PIN DE SEGURANÇA INCORRETO!");
+        }
+
+        const corpoPedido = {
+            id: 'MF-' + Math.floor(1000 + Math.random() * 9000),
+            merchant: user,
+            tipo: t === 'DEP' ? 'DEPOSITO' : 'SAQUE',
+            valor: v,
+            pix: document.getElementById('chave-pix').value || 'N/A',
+            comprovante: link || 'N/A',
+            status: 'Pendente',
+            data_hora: new Date().toLocaleString('pt-BR')
+        };
+
+        // ENVIO PARA PLANILHA GOOGLE
+        await fetch(API_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ data: [corpoPedido] })
+        });
+
+        lastOpTime = agora;
+        alert("SOLICITAÇÃO ENVIADA À REDE MASTER!");
         location.reload();
     }
-}
+
+    function atualizarTiers(s) {
+        let tier = "Soldado", taxa = "5%", per = (s/50000)*100;
+        if(s >= 500000) { tier = "Soberano"; taxa = "2%"; per = 100; }
+        else if(s >= 100000) { tier = "Elite"; taxa = "3%"; per = (s/500000)*100; }
+        else if(s >= 50000) { tier = "Pro Player"; taxa = "4%"; per = (s/100000)*100; }
+
+        document.getElementById('tier-name').innerText = tier;
+        document.getElementById('tax-val').innerText = taxa;
+        document.getElementById('prog-text').innerText = Math.round(Math.min(per, 100)) + '%';
+        document.getElementById('circle-prog').style.strokeDashoffset = 440 - (440 * Math.min(per, 100) / 100);
+    }
+
+    // Sincronização a cada 7 segundos (Sem F5)
+    setInterval(carregarDadosGlobais, 7000);
+    carregarDadosGlobais();
+</script>
