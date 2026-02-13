@@ -27,30 +27,17 @@
         const bans = JSON.parse(localStorage.getItem('mf_blacklist') || '[]');
         const isLocked = localStorage.getItem('mf_lockdown') === 'true';
 
-        if(!u || !p) return alert("Preencha todos os campos.");
-
-        // 1. Verifica se está Banido
-        if(bans.includes(u)) {
-            return alert("⚠️ ACESSO NEGADO: Usuário banido por violação dos termos.");
-        }
+        if(bans.includes(u)) return alert("⚠️ ACESSO NEGADO: Usuário banido.");
         
-        // 2. Login de Admin Master
         if(u === 'admin' && p === '2026_MASTER_MFPAY') {
             localStorage.setItem('role', 'MASTER');
-            localStorage.setItem('currentUser', 'Admin');
             location.href = 'admin.html';
-            return;
+        } else if(u !== '') {
+            if(isLocked) return alert("🔒 SISTEMA EM MANUTENÇÃO");
+            localStorage.setItem('role', 'USER');
+            localStorage.setItem('currentUser', u);
+            location.href = 'dashboard.html';
         }
-
-        // 3. Verifica Lockdown para usuários comuns
-        if(isLocked) {
-            return alert("🔒 SISTEMA EM MANUTENÇÃO: O acesso para usuários está temporariamente bloqueado.");
-        }
-
-        // 4. Login de Usuário Comum
-        localStorage.setItem('role', 'USER');
-        localStorage.setItem('currentUser', u);
-        location.href = 'dashboard.html';
     }
 </script>
 </body>
