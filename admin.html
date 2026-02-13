@@ -2,194 +2,181 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Painel MF PAY | Gateway</title>
+    <title>MF PAY | MASTER CONTROL</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { background: #1a1a1a; color: #fff; font-family: 'Inter', sans-serif; }
-        .gateway-card { background: #262626; border-radius: 20px; border: 1px solid #333; overflow: hidden; }
-        .neon-bg { background: #80ff44; color: #000; font-weight: 800; }
+        body { background: #050505; color: #f1f5f9; font-family: 'Inter', sans-serif; }
+        .sidebar { background: #0a0a0a; border-right: 1px solid #1a1a1a; height: 100vh; position: fixed; width: 260px; display: none; }
+        .main-content { margin-left: 260px; padding: 40px; display: none; }
+        .admin-card { background: #0f0f0f; border: 1px solid #1e293b; border-radius: 16px; }
+        .nav-btn { width: 100%; text-align: left; padding: 15px 25px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #444; transition: 0.3s; border-left: 4px solid transparent; italic; }
+        .nav-btn.active { color: #80ff44; background: #111; border-left-color: #80ff44; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* Estilo Login */
+        #login-screen { height: 100vh; display: flex; align-items: center; justify-content: center; background: #000; }
+        .login-box { background: #0a0a0a; padding: 40px; border-radius: 24px; border: 1px solid #1a1a1a; width: 100%; max-width: 400px; text-align: center; }
+        input { background: #111 !important; border: 1px solid #222 !important; color: #fff; padding: 15px; border-radius: 12px; width: 100%; outline: none; margin-bottom: 15px; }
         .neon-text { color: #80ff44; }
-        .progress-container { background: #1a1a1a; border-radius: 5px; height: 12px; overflow: hidden; border: 1px solid #333; }
-        .progress-fill { background: #80ff44; height: 100%; transition: width 1s ease-in-out; }
-        .reward-item { filter: grayscale(100%); opacity: 0.2; transition: 0.5s; }
-        .reward-active { filter: grayscale(0%); opacity: 1; transform: scale(1.1); }
-        input, select, textarea { background: #1a1a1a !important; border: 1px solid #333 !important; border-radius: 10px !important; color: #fff; outline: none; padding: 12px; width: 100%; }
-        .label-tech { font-size: 11px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; display: block; }
-        #lock-screen { background: #000; z-index: 9999; display: none; position: fixed; inset: 0; }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body>
 
-    <div id="lock-screen" class="flex flex-col items-center justify-center">
-        <div class="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <h2 class="text-red-600 font-black italic uppercase">Protocolo de Segurança Ativo</h2>
-    </div>
-
-    <div class="max-w-5xl mx-auto space-y-8">
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            
-            <div class="gateway-card p-8">
-                <div class="flex justify-between items-start mb-6">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 bg-black rounded-full flex items-center justify-center border border-[#80ff44]">
-                            <span class="neon-text font-black italic text-lg">M</span>
-                        </div>
-                        <h1 class="font-black italic text-xl uppercase tracking-tighter text-white">MF <span class="text-gray-500 font-light">PAY</span></h1>
-                    </div>
-                    <span id="tier-badge" class="neon-bg px-4 py-1 rounded-full text-[9px] uppercase italic">Tier: Soldado</span>
-                </div>
-
-                <div class="space-y-4">
-                    <p class="label-tech italic">Saldo Total Disponível</p>
-                    <h2 id="bal" class="text-6xl font-black italic tracking-tighter">R$ 0,00</h2>
-                </div>
-
-                <div class="mt-10 space-y-4">
-                    <div class="flex justify-between text-[10px] font-black neon-text italic uppercase">
-                        <span>Progresso de Faturamento</span>
-                        <span id="prog-val">0%</span>
-                    </div>
-                    <div class="progress-container">
-                        <div id="faturamento-bar" class="progress-fill" style="width: 0%"></div>
-                    </div>
-                    <div class="flex justify-between text-[10px] text-gray-600 font-bold uppercase italic tracking-tighter">
-                        <span>10k</span>
-                        <span>100k</span>
-                        <span>250k</span>
-                        <span>1M+</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="gateway-card p-8">
-                <p class="label-tech italic">Conquistas da Máfia</p>
-                <div class="grid grid-cols-4 gap-4 mb-10 border-b border-white/5 pb-8">
-                    <div id="rew-10k" class="reward-item text-center">
-                        <div class="text-2xl">🥉</div>
-                        <p class="text-[8px] font-bold mt-1">PLACA 10K</p>
-                    </div>
-                    <div id="rew-100k" class="reward-item text-center">
-                        <div class="text-2xl">🥈</div>
-                        <p class="text-[8px] font-bold mt-1">PLACA 100K</p>
-                    </div>
-                    <div id="rew-250k" class="reward-item text-center">
-                        <div class="text-2xl">🥇</div>
-                        <p class="text-[8px] font-bold mt-1">PLACA 250K</p>
-                    </div>
-                    <div id="rew-1m" class="reward-item text-center">
-                        <div class="text-2xl">💎</div>
-                        <p class="text-[9px] font-black neon-text mt-1 italic uppercase">Don</p>
-                    </div>
-                </div>
-
-                <div class="space-y-4">
-                    <p class="label-tech italic">Entrada (Inbound)</p>
-                    <input type="number" id="val" placeholder="R$ 0,00" class="text-3xl font-black placeholder:text-gray-800">
-                    <div class="bg-black/40 p-3 rounded-lg border border-white/5 space-y-1">
-                        <p class="label-tech !mb-0 !text-[8px]">Pix-Admin Key (Mestre)</p>
-                        <p id="pix-admin-key" class="text-[10px] font-mono text-gray-500 truncate italic">Aguardando...</p>
-                        <button onclick="copiarPixAdmin()" class="neon-text text-[9px] font-black uppercase tracking-widest mt-1">Copiar Chave</button>
-                    </div>
-                    <button onclick="enviar('DEP')" class="w-full neon-bg py-5 rounded-full text-xs uppercase italic tracking-widest transition hover:opacity-80">Enviar (Depósito)</button>
-                </div>
-            </div>
-
-            <div class="gateway-card p-8 md:col-span-1">
-                <p class="label-tech italic">Liquidat Saque (5%)</p>
-                <div class="space-y-4">
-                    <select id="t-pix-cli">
-                        <option value="CPF">CPF / CNPJ</option>
-                        <option value="CELULAR">CELULAR</option>
-                        <option value="ALEATORIA">ALEATÓRIA</option>
-                    </select>
-                    <input type="text" id="c-pix-cli" placeholder="Chave de Destino">
-                    <button onclick="enviar('SAQ')" class="w-full neon-bg py-4 rounded-full text-xs uppercase italic tracking-widest">Solicitar Liquidação</button>
-                </div>
-            </div>
-
-            <div class="gateway-card p-8 md:col-span-1 border-l-4 border-blue-500">
-                <p class="label-tech italic flex items-center gap-2">
-                    <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-                    Mensagem Direta ao Admin
-                </p>
-                <div class="space-y-4 text-center">
-                    <textarea id="msg-admin" placeholder="Escreva sua dúvida ou problema..." class="h-24 resize-none text-[11px] italic"></textarea>
-                    <button onclick="enviarMensagem()" class="w-full bg-blue-600 text-white font-black py-4 rounded-full text-xs uppercase italic tracking-widest hover:bg-blue-500 transition">Transmitir para o Master</button>
-                </div>
-            </div>
-
+    <div id="login-screen">
+        <div class="login-box">
+            <h1 class="text-2xl font-black italic neon-text mb-8 uppercase tracking-tighter">MF PAY <span class="text-white">MASTER</span></h1>
+            <input type="text" id="adm-user" placeholder="Usuário Master">
+            <input type="password" id="adm-pass" placeholder="Senha de Acesso">
+            <button onclick="autenticar()" class="w-full bg-[#80ff44] text-black font-black py-4 rounded-xl uppercase italic hover:scale-105 transition">Entrar no Sistema</button>
+            <p id="login-err" class="text-red-500 text-[10px] mt-4 font-bold uppercase hidden">Acesso Negado: Credenciais Inválidas</p>
         </div>
     </div>
 
+    <aside id="sidebar" class="sidebar py-10 flex flex-col justify-between">
+        <div>
+            <div class="px-8 mb-10 text-center">
+                <h1 class="text-xl font-black italic neon-text uppercase tracking-tighter">ADMIN <span class="text-white">MASTER</span></h1>
+            </div>
+            <nav class="space-y-1">
+                <button onclick="openTab(event, 'fila')" class="nav-btn active">Fila de Pedidos</button>
+                <button onclick="openTab(event, 'mensagens')" class="nav-btn">Mensagens</button>
+                <button onclick="openTab(event, 'config')" class="nav-btn">Configurações</button>
+            </nav>
+        </div>
+        <div class="px-8">
+             <button onclick="toggleLockdown()" id="lockBtn" class="w-full py-3 rounded-xl font-black text-[10px] uppercase italic transition-all"></button>
+             <button onclick="logout()" class="w-full text-gray-600 text-[9px] font-bold uppercase mt-4 hover:text-white">Sair do Sistema</button>
+        </div>
+    </aside>
+
+    <main id="main-content" class="main-content">
+        
+        <div id="fila" class="tab-content active">
+            <h2 class="text-3xl font-black italic uppercase mb-8">Pedidos de Liquidação</h2>
+            <div class="admin-card overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-[#111] text-[10px] font-black uppercase text-gray-500">
+                        <tr>
+                            <th class="p-5">User</th>
+                            <th class="p-5">Tipo</th>
+                            <th class="p-5">Valor</th>
+                            <th class="p-5">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-pedidos"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="mensagens" class="tab-content">
+            <h2 class="text-3xl font-black italic uppercase mb-8">Suporte Recebido</h2>
+            <div id="lista-mensagens" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+
+        <div id="config" class="tab-content">
+            <h2 class="text-3xl font-black italic uppercase mb-8">Configurações Globais</h2>
+            <div class="admin-card p-8 max-w-xl">
+                <label class="text-[10px] font-bold text-gray-500 uppercase block mb-2 italic">Chave Pix Master (Recebimento)</label>
+                <input type="text" id="master-pix-input">
+                <button onclick="salvarPix()" class="w-full bg-[#80ff44] text-black font-black py-4 rounded-xl uppercase italic">Salvar Alterações</button>
+            </div>
+        </div>
+    </main>
+
 <script>
-    const user = localStorage.getItem('currentUser') || 'merchant_user';
+    // CONFIGURAÇÃO DE LOGIN
+    function autenticar() {
+        const u = document.getElementById('adm-user').value;
+        const p = document.getElementById('adm-pass').value;
 
-    function copiarPixAdmin() {
-        const c = document.getElementById('pix-admin-key').innerText;
-        navigator.clipboard.writeText(c);
-        alert("CHAVE MESTRE COPIADA!");
+        // Login padrão: admin / mestre123
+        if(u === 'admin' && p === 'mestre123') {
+            sessionStorage.setItem('adm_logado', 'true');
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('sidebar').style.display = 'flex';
+            document.getElementById('main-content').style.display = 'block';
+            renderPedidos();
+        } else {
+            document.getElementById('login-err').classList.remove('hidden');
+        }
     }
 
-    function enviar(t) {
-        const v = document.getElementById('val').value;
-        const tp = document.getElementById('t-pix-cli').value;
-        const cp = document.getElementById('c-pix-cli').value;
-
-        if(!v || v <= 0) return alert("INSIRA UM VALOR VÁLIDO");
-        if(t === 'SAQ' && !cp) return alert("CHAVE PIX OBRIGATÓRIA");
-
-        localStorage.setItem('mf_ped', JSON.stringify({
-            tipo: t, valor: v, user: user,
-            cli_pix_tipo: tp, cli_pix_chave: cp, timestamp: Date.now()
-        }));
-        alert("SOLICITAÇÃO ENVIADA!");
+    function logout() {
+        sessionStorage.removeItem('adm_logado');
+        location.reload();
     }
 
-    function enviarMensagem() {
-        const msg = document.getElementById('msg-admin').value;
-        if(!msg) return alert("DIGITE SUA MENSAGEM");
+    function openTab(evt, tabName) {
+        let i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+        tablinks = document.getElementsByClassName("nav-btn");
+        for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
 
-        const mensagens = JSON.parse(localStorage.getItem('mf_mensagens') || '[]');
-        mensagens.push({ user: user, texto: msg, data: new Date().toLocaleString('pt-BR'), lida: false });
-        localStorage.setItem('mf_mensagens', JSON.stringify(mensagens));
+    function toggleLockdown() {
+        const s = localStorage.getItem('mf_lockdown') === 'true';
+        localStorage.setItem('mf_lockdown', !s);
+        updateLockBtn(!s);
+    }
+
+    function updateLockBtn(s) {
+        const b = document.getElementById('lockBtn');
+        b.innerText = s ? "SISTEMA TRAVADO" : "SISTEMA LIBERADO";
+        b.style.background = s ? "#ef4444" : "#1a1a1a";
+        b.style.color = s ? "#fff" : "#888";
+    }
+
+    function salvarPix() {
+        localStorage.setItem('mf_pix', document.getElementById('master-pix-input').value);
+        alert("PIX ATUALIZADO!");
+    }
+
+    function renderPedidos() {
+        const lista = document.getElementById('lista-pedidos');
+        const ped = JSON.parse(localStorage.getItem('mf_ped'));
+        lista.innerHTML = '';
+        if(!ped) return;
         
-        alert("MENSAGEM ENVIADA AO MASTER!");
-        document.getElementById('msg-admin').value = '';
+        lista.innerHTML = `
+            <tr class="border-t border-white/5">
+                <td class="p-5 font-bold italic">${ped.user}</td>
+                <td class="p-5 text-[10px] font-black">${ped.tipo}</td>
+                <td class="p-5 text-[#80ff44] font-black">R$ ${ped.valor}</td>
+                <td class="p-5">
+                    <button onclick="decidir('APR')" class="bg-[#80ff44] text-black text-[9px] font-black px-3 py-1 rounded">Aprovar</button>
+                    <button onclick="decidir('REC')" class="bg-red-500 text-white text-[9px] font-black px-3 py-1 rounded">Negar</button>
+                </td>
+            </tr>
+        `;
     }
 
-    function syncUI(saldo) {
-        let percent = 0;
-        let tier = "Soldado";
-
-        // Lógica de Tier e Placas
-        if(saldo >= 10000) { document.getElementById('rew-10k').classList.add('reward-active'); tier = "Pro"; }
-        if(saldo >= 100000) { document.getElementById('rew-100k').classList.add('reward-active'); tier = "Elite"; }
-        if(saldo >= 250000) { document.getElementById('rew-250k').classList.add('reward-active'); tier = "Máfia"; }
-        if(saldo >= 1000000) { document.getElementById('rew-1m').classList.add('reward-active'); tier = "Soberano"; }
-
-        // Lógica da Barra
-        if(saldo <= 10000) percent = (saldo / 10000) * 25;
-        else if(saldo <= 100000) percent = 25 + ((saldo - 10000) / 90000) * 25;
-        else if(saldo <= 250000) percent = 50 + ((saldo - 100000) / 150000) * 25;
-        else { percent = 75 + ((saldo - 250000) / 750000) * 25; if(percent > 100) percent = 100; }
-
-        document.getElementById('faturamento-bar').style.width = percent + '%';
-        document.getElementById('prog-val').innerText = Math.round(percent) + '%';
-        document.getElementById('tier-badge').innerText = `Tier: ${tier}`;
+    function decidir(acao) {
+        const ped = JSON.parse(localStorage.getItem('mf_ped'));
+        if(acao === 'APR') {
+            const current = parseFloat(localStorage.getItem('bal_'+ped.user) || 0);
+            const val = parseFloat(ped.valor);
+            localStorage.setItem('bal_'+ped.user, ped.tipo === 'DEP' ? (current + val) : (current - val));
+        }
+        localStorage.removeItem('mf_ped');
+        renderPedidos();
     }
 
+    // Loop de Atualização
     setInterval(() => {
-        const isLocked = localStorage.getItem('mf_lockdown') === 'true';
-        document.getElementById('lock-screen').style.display = isLocked ? 'flex' : 'none';
+        if(sessionStorage.getItem('adm_logado') === 'true') {
+            renderPedidos();
+            updateLockBtn(localStorage.getItem('mf_lockdown') === 'true');
+        }
+    }, 2000);
 
-        const s = parseFloat(localStorage.getItem('bal_'+user) || 0);
-        document.getElementById('bal').innerText = `R$ ${s.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
-        document.getElementById('pix-admin-key').innerText = localStorage.getItem('mf_pix') || 'AGUARDANDO ADMIN...';
-        
-        syncUI(s);
-    }, 1000);
+    // Carregar chave atual
+    document.getElementById('master-pix-input').value = localStorage.getItem('mf_pix') || '';
 </script>
 </body>
 </html>
