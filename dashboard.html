@@ -1,88 +1,80 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | MFpay</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background: #000; color: #fff; font-family: sans-serif; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        input[type="file"] { display: none; }
-        .custom-file-upload { border: 1px dashed #333; padding: 20px; border-radius: 20px; cursor: pointer; display: block; text-align: center; }
-    </style>
+    <style>.tab { display: none; } .tab.active { display: block; }</style>
 </head>
-<body class="flex flex-col md:flex-row min-h-screen">
-    <aside class="w-full md:w-72 bg-[#0a0a0a] p-10 border-r border-white/5">
-        <h1 class="text-3xl font-black italic text-[#80ff44] mb-12">MFPAY</h1>
-        <nav class="space-y-6 text-xs font-black uppercase tracking-widest">
-            <div onclick="tab('dash')" class="cursor-pointer hover:text-[#80ff44]">Início</div>
-            <div onclick="tab('dep')" class="cursor-pointer hover:text-[#80ff44]">Recarga</div>
-        </nav>
-    </aside>
+<body class="bg-black text-white p-6 md:p-16">
+    <div class="max-w-4xl mx-auto">
+        <header class="flex justify-between items-center mb-12">
+            <h1 id="wl-side" class="text-3xl font-black italic text-[#80ff44]">MFPAY</h1>
+            <nav class="flex gap-6 text-[10px] font-black uppercase tracking-widest">
+                <button onclick="tab('d')" class="hover:text-[#80ff44]">Início</button>
+                <button onclick="tab('r')" class="hover:text-[#80ff44]">Recarga</button>
+                <button onclick="tab('s')" class="hover:text-[#80ff44]">Saque</button>
+            </nav>
+        </header>
 
-    <main class="flex-1 p-10 md:p-20">
-        <div id="dash" class="tab-content active">
-            <h2 class="text-6xl font-black mb-10">R$ <span id="bal">0,00</span></h2>
-        </div>
-
-        <div id="dep" class="tab-content max-w-xl">
-            <h2 class="text-3xl font-black mb-8 uppercase italic">Injetar Saldo</h2>
-            <div class="space-y-6">
-                <input type="number" id="val-dep" placeholder="Valor R$ 0,00" class="w-full bg-[#0a0a0a] p-5 rounded-2xl border border-white/10 outline-none text-2xl font-black">
-                
-                <label class="custom-file-upload">
-                    <input type="file" id="file-comp" accept="image/*" onchange="previewFile()">
-                    <span id="file-text" class="opacity-40 uppercase text-[10px] font-black">Anexar Comprovante (Foto)</span>
-                </label>
-
-                <button onclick="enviarOperacao()" class="w-full bg-[#80ff44] text-black py-6 rounded-3xl font-black uppercase italic">Enviar Protocolo</button>
+        <div id="d" class="tab active">
+            <div class="bg-[#050505] p-16 rounded-[60px] border border-white/5 text-center shadow-2xl">
+                <p class="opacity-30 text-[10px] uppercase font-black mb-4 tracking-widest">Saldo Disponível</p>
+                <h2 id="bal" class="text-7xl md:text-9xl font-black tracking-tighter">R$ 0,00</h2>
             </div>
         </div>
-    </main>
+
+        <div id="r" class="tab max-w-xl mx-auto">
+            <h2 class="text-3xl font-black italic mb-8 uppercase">Injetar Capital</h2>
+            <input type="number" id="v-dep" placeholder="Valor R$" class="w-full bg-[#0a0a0a] p-6 rounded-2xl mb-4 border border-white/10 text-2xl font-black outline-none focus:border-[#80ff44]">
+            <label class="block p-10 border-2 border-dashed border-white/10 rounded-2xl text-center mb-6 cursor-pointer hover:border-[#80ff44]">
+                <input type="file" id="img" accept="image/*" class="hidden" onchange="readImg()">
+                <span id="img-txt" class="opacity-40 font-black uppercase text-xs">Anexar Comprovante (Foto)</span>
+            </label>
+            <button onclick="enviar('DEPOSITO')" class="w-full bg-[#80ff44] text-black py-6 rounded-3xl font-black uppercase btn-wl">Confirmar</button>
+        </div>
+
+        <div id="s" class="tab max-w-xl mx-auto">
+            <h2 class="text-3xl font-black italic mb-8 uppercase text-blue-500">Solicitar Saque</h2>
+            <input type="number" id="v-saq" placeholder="Valor R$" class="w-full bg-[#0a0a0a] p-6 rounded-2xl mb-4 border border-white/10 text-2xl font-black outline-none">
+            <input type="text" id="px" placeholder="Chave PIX" class="w-full bg-[#0a0a0a] p-6 rounded-2xl mb-6 border border-white/10 font-bold outline-none">
+            <button onclick="enviar('SAQUE')" class="w-full bg-white text-black py-6 rounded-3xl font-black uppercase">Pedir Liquidação</button>
+        </div>
+    </div>
 
     <script>
-        const API = 'https://sheetdb.io/api/v1/q28pv28d009pq';
-        let base64Image = "";
+        const API = 'https://sheetdb.io/api/v1/n1iq28pv28d009pq';
+        let fotoData = "";
 
-        function tab(id) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-
-        function previewFile() {
-            const file = document.getElementById('file-comp').files[0];
+        function tab(id) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+        function readImg() {
+            const file = document.getElementById('img').files[0];
             const reader = new FileReader();
-            reader.onloadend = function() {
-                base64Image = reader.result;
-                document.getElementById('file-text').innerText = "FOTO ANEXADA COM SUCESSO";
-                document.getElementById('file-text').style.color = "#80ff44";
-            }
-            if (file) reader.readAsDataURL(file);
+            reader.onloadend = () => { fotoData = reader.result; document.getElementById('img-txt').innerText = "FOTO CARREGADA!"; document.getElementById('img-txt').style.color = "#80ff44"; }
+            reader.readAsDataURL(file);
         }
 
-        async function enviarOperacao() {
-            const val = document.getElementById('val-dep').value;
-            if(!base64Image) { alert("Anexe a foto do comprovante!"); return; }
-
+        async function enviar(tipo) {
+            const v = tipo === 'DEPOSITO' ? document.getElementById('v-dep').value : document.getElementById('v-saq').value;
+            const pix = document.getElementById('px').value;
+            if(!v) return alert("Digite o valor!");
             await fetch(API, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ data: [{
-                    id: 'TX-' + Math.floor(Math.random() * 9999),
-                    merchant: 'Nando',
-                    tipo: 'DEPOSITO',
-                    valor: val,
-                    comprovante: base64Image, // A FOTO VAI AQUI
-                    status: 'Pendente',
-                    data_hora: new Date().toLocaleString()
-                }]})
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ data: [{ id: 'TX'+Date.now(), merchant: 'Nando', tipo: tipo, valor: v, comprovante: fotoData, chave_pix: pix, status: 'Pendente' }]})
             });
-            alert("Enviado para o Radar Master!");
-            location.reload();
+            alert("Protocolo Enviado!"); location.reload();
         }
+
+        async function carregar() {
+            const res = await fetch(API); const d = await res.json();
+            const saldo = d.filter(i => i.merchant === 'Nando' && i.status === 'Aprovado').reduce((a, b) => b.tipo === 'DEPOSITO' ? a + parseFloat(b.valor) : a - parseFloat(b.valor), 0);
+            document.getElementById('bal').innerText = `R$ ${saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            const wl = JSON.parse(localStorage.getItem('mf_white_label') || '{"nome":"MFpay","cor":"#80ff44"}');
+            document.getElementById('wl-side').innerText = wl.nome.toUpperCase();
+            document.getElementById('wl-side').style.color = wl.cor;
+            document.querySelectorAll('.btn-wl').forEach(b => b.style.backgroundColor = wl.cor);
+        }
+        carregar();
     </script>
 </body>
 </html>
