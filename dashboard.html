@@ -2,178 +2,233 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Painel MF PAY | Gateway</title>
+    <title>MF PAY | Gateway Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        body { background: #1a1a1a; color: #fff; font-family: 'Inter', sans-serif; }
-        .gateway-card { background: #262626; border-radius: 20px; border: 1px solid #333; overflow: hidden; }
+        body { background: #0f0f0f; color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .sidebar { background: #151515; border-right: 1px solid #222; height: 100vh; position: fixed; width: 240px; }
+        .main-content { margin-left: 240px; padding: 40px; min-height: 100vh; }
+        .gateway-card { background: #1a1a1a; border-radius: 24px; border: 1px solid #252525; }
+        .nav-btn { width: 100%; text-align: left; padding: 15px 25px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #666; transition: 0.3s; border-right: 3px solid transparent; }
+        .nav-btn.active { color: #80ff44; background: linear-gradient(90deg, rgba(128,255,68,0.05) 0%, rgba(0,0,0,0) 100%); border-right-color: #80ff44; }
         .neon-bg { background: #80ff44; color: #000; font-weight: 800; }
         .neon-text { color: #80ff44; }
-        .progress-container { background: #1a1a1a; border-radius: 5px; height: 12px; overflow: hidden; border: 1px solid #333; }
-        .progress-fill { background: #80ff44; height: 100%; transition: width 1s ease-in-out; }
+        .progress-container { background: #000; border-radius: 6px; height: 12px; border: 1px solid #222; }
+        .progress-fill { background: #80ff44; height: 100%; transition: width 1s ease-in-out; box-shadow: 0 0 15px rgba(128,255,68,0.3); }
         .reward-item { filter: grayscale(100%); opacity: 0.2; transition: 0.5s; }
         .reward-active { filter: grayscale(0%); opacity: 1; transform: scale(1.1); }
-        input, select, textarea { background: #1a1a1a !important; border: 1px solid #333 !important; border-radius: 10px !important; color: #fff; outline: none; padding: 12px; width: 100%; }
-        .label-tech { font-size: 11px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; display: block; }
+        input, select, textarea { background: #0a0a0a !important; border: 1px solid #222 !important; border-radius: 12px !important; color: #fff; outline: none; padding: 15px; width: 100%; }
+        input:focus { border-color: #80ff44 !important; }
+        .tab-content { display: none; animation: fadeIn 0.4s ease-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         #lock-screen { background: #000; z-index: 9999; display: none; position: fixed; inset: 0; }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body>
 
     <div id="lock-screen" class="flex flex-col items-center justify-center">
         <div class="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <h2 class="text-red-600 font-black italic uppercase">Protocolo de Segurança Ativo</h2>
+        <h2 class="text-red-600 font-black italic uppercase">Acesso Bloqueado pelo Master</h2>
     </div>
 
-    <div class="max-w-5xl mx-auto space-y-8">
+    <aside class="sidebar flex flex-col justify-between py-10">
+        <div>
+            <div class="px-8 mb-12">
+                <h1 class="font-black italic text-2xl uppercase tracking-tighter">MF <span class="text-gray-600 font-light">PAY</span></h1>
+                <p class="text-[8px] text-gray-500 font-bold tracking-[3px] uppercase mt-1">Gateway Solutions</p>
+            </div>
+            <nav class="space-y-2">
+                <button onclick="openTab(event, 'dash')" class="nav-btn active">Dashboard</button>
+                <button onclick="openTab(event, 'deposito')" class="nav-btn">Inbound (Depósito)</button>
+                <button onclick="openTab(event, 'saque')" class="nav-btn">Outbound (Saque)</button>
+                <button onclick="openTab(event, 'suporte')" class="nav-btn">Suporte Master</button>
+            </nav>
+        </div>
+        <div class="px-8">
+            <p id="display-user" class="text-[9px] font-bold text-gray-600 uppercase tracking-widest">ID: ---</p>
+        </div>
+    </aside>
+
+    <main class="main-content">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            
-            <div class="gateway-card p-8">
-                <div class="flex justify-between items-start mb-6">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 bg-black rounded-full flex items-center justify-center border border-[#80ff44]">
-                            <span class="neon-text font-black italic text-lg">M</span>
+        <div id="dash" class="tab-content active space-y-8">
+            <div class="flex justify-between items-end">
+                <h2 class="text-3xl font-black italic uppercase">Visão Geral</h2>
+                <span id="tier-badge" class="neon-bg px-4 py-1 rounded-full text-[10px] uppercase italic">Tier: Soldado</span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="gateway-card p-10 lg:col-span-2 flex flex-col justify-center border-b-4 border-b-[#80ff44]">
+                    <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mb-4 italic">Saldo Disponível para Saque</p>
+                    <h2 id="bal" class="text-7xl font-black italic tracking-tighter">R$ 0,00</h2>
+                </div>
+                
+                <div class="gateway-card p-8">
+                    <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mb-6 italic">Meta de Faturamento</p>
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-end">
+                            <span class="text-4xl font-black neon-text italic" id="prog-val">0%</span>
+                            <span class="text-[10px] text-gray-500 font-bold uppercase italic">Monthly Progress</span>
                         </div>
-                        <h1 class="font-black italic text-xl uppercase tracking-tighter text-white">MF <span class="text-gray-500 font-light">PAY</span></h1>
-                    </div>
-                    <span id="tier-badge" class="neon-bg px-4 py-1 rounded-full text-[9px] uppercase italic">Tier: Soldado</span>
-                </div>
-
-                <div class="space-y-4">
-                    <p class="label-tech italic">Saldo Total Disponível</p>
-                    <h2 id="bal" class="text-6xl font-black italic tracking-tighter">R$ 0,00</h2>
-                </div>
-
-                <div class="mt-10 space-y-4">
-                    <div class="flex justify-between text-[10px] font-black neon-text italic uppercase">
-                        <span>Progresso de Faturamento</span>
-                        <span id="prog-val">0%</span>
-                    </div>
-                    <div class="progress-container">
-                        <div id="faturamento-bar" class="progress-fill" style="width: 0%"></div>
-                    </div>
-                    <div class="flex justify-between text-[10px] text-gray-600 font-bold uppercase italic tracking-tighter">
-                        <span>10k</span>
-                        <span>100k</span>
-                        <span>250k</span>
-                        <span>1M+</span>
+                        <div class="progress-container">
+                            <div id="faturamento-bar" class="progress-fill" style="width: 0%"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="gateway-card p-8">
-                <p class="label-tech italic">Conquistas da Máfia</p>
-                <div class="grid grid-cols-4 gap-4 mb-10 border-b border-white/5 pb-8">
+            <div class="gateway-card p-10">
+                <h3 class="text-gray-500 text-xs font-bold uppercase tracking-widest mb-10 italic text-center">Badges de Performance (Rewards)</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-12 max-w-4xl mx-auto">
                     <div id="rew-10k" class="reward-item text-center">
-                        <div class="text-2xl">🥉</div>
-                        <p class="text-[8px] font-bold mt-1">PLACA 10K</p>
+                        <div class="text-5xl mb-3">🥉</div>
+                        <p class="text-[10px] font-black uppercase tracking-widest">10K Placa</p>
                     </div>
                     <div id="rew-100k" class="reward-item text-center">
-                        <div class="text-2xl">🥈</div>
-                        <p class="text-[8px] font-bold mt-1">PLACA 100K</p>
+                        <div class="text-5xl mb-3">🥈</div>
+                        <p class="text-[10px] font-black uppercase tracking-widest">100K Placa</p>
                     </div>
                     <div id="rew-250k" class="reward-item text-center">
-                        <div class="text-2xl">🥇</div>
-                        <p class="text-[8px] font-bold mt-1">PLACA 250K</p>
+                        <div class="text-5xl mb-3">🥇</div>
+                        <p class="text-[10px] font-black uppercase tracking-widest">250K Placa</p>
                     </div>
                     <div id="rew-1m" class="reward-item text-center">
-                        <div class="text-2xl">💎</div>
-                        <p class="text-[9px] font-black neon-text mt-1 italic uppercase">Don</p>
+                        <div class="text-5xl mb-3">💎</div>
+                        <p class="text-[10px] font-black neon-text uppercase tracking-widest italic">Soberano</p>
                     </div>
                 </div>
-
-                <div class="space-y-4">
-                    <p class="label-tech italic">Entrada (Inbound)</p>
-                    <input type="number" id="val" placeholder="R$ 0,00" class="text-3xl font-black placeholder:text-gray-800">
-                    <div class="bg-black/40 p-3 rounded-lg border border-white/5 space-y-1">
-                        <p class="label-tech !mb-0 !text-[8px]">Pix-Admin Key (Mestre)</p>
-                        <p id="pix-admin-key" class="text-[10px] font-mono text-gray-500 truncate italic">Aguardando...</p>
-                        <button onclick="copiarPixAdmin()" class="neon-text text-[9px] font-black uppercase tracking-widest mt-1">Copiar Chave</button>
-                    </div>
-                    <button onclick="enviar('DEP')" class="w-full neon-bg py-5 rounded-full text-xs uppercase italic tracking-widest transition hover:opacity-80">Enviar (Depósito)</button>
-                </div>
             </div>
-
-            <div class="gateway-card p-8 md:col-span-1">
-                <p class="label-tech italic">Liquidat Saque (5%)</p>
-                <div class="space-y-4">
-                    <select id="t-pix-cli">
-                        <option value="CPF">CPF / CNPJ</option>
-                        <option value="CELULAR">CELULAR</option>
-                        <option value="ALEATORIA">ALEATÓRIA</option>
-                    </select>
-                    <input type="text" id="c-pix-cli" placeholder="Chave de Destino">
-                    <button onclick="enviar('SAQ')" class="w-full neon-bg py-4 rounded-full text-xs uppercase italic tracking-widest">Solicitar Liquidação</button>
-                </div>
-            </div>
-
-            <div class="gateway-card p-8 md:col-span-1 border-l-4 border-blue-500">
-                <p class="label-tech italic flex items-center gap-2">
-                    <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-                    Mensagem Direta ao Admin
-                </p>
-                <div class="space-y-4 text-center">
-                    <textarea id="msg-admin" placeholder="Escreva sua dúvida ou problema..." class="h-24 resize-none text-[11px] italic"></textarea>
-                    <button onclick="enviarMensagem()" class="w-full bg-blue-600 text-white font-black py-4 rounded-full text-xs uppercase italic tracking-widest hover:bg-blue-500 transition">Transmitir para o Master</button>
-                </div>
-            </div>
-
         </div>
-    </div>
+
+        <div id="deposito" class="tab-content space-y-8 max-w-2xl mx-auto">
+            <h2 class="text-3xl font-black italic uppercase text-center">Injetar Capital</h2>
+            <div class="gateway-card p-10 space-y-6">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase block mb-2">Valor do Depósito</label>
+                    <input type="number" id="val-dep" placeholder="R$ 0,00" class="text-3xl font-black">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase block mb-2">Link do Comprovante (Obrigatório)</label>
+                    <input type="text" id="link-comp" placeholder="Cole o link ou ID da transação" class="italic">
+                </div>
+                <div class="bg-black p-5 rounded-2xl border border-white/5 space-y-3">
+                    <p class="text-[9px] font-bold text-gray-600 uppercase">Chave Mestre MF PAY</p>
+                    <div class="flex items-center justify-between">
+                        <span id="pix-admin-key" class="neon-text font-mono font-bold italic tracking-tighter">Aguardando...</span>
+                        <button onclick="copiarPix()" class="text-[10px] font-black uppercase border border-white/10 px-4 py-2 rounded-lg hover:bg-white hover:text-black transition">Copiar</button>
+                    </div>
+                </div>
+                <button onclick="enviarOperacao('DEP')" class="w-full neon-bg py-5 rounded-2xl text-xs uppercase italic tracking-widest shadow-lg shadow-green-500/10">Confirmar Depósito</button>
+            </div>
+        </div>
+
+        <div id="saque" class="tab-content space-y-8 max-w-2xl mx-auto">
+            <h2 class="text-3xl font-black italic uppercase text-center">Liquidação de Saldo</h2>
+            <div class="gateway-card p-10 space-y-6">
+                <div class="bg-red-500/5 border border-red-500/10 p-4 rounded-xl text-center">
+                    <p class="text-red-500 text-[10px] font-bold uppercase">Taxa de Operação: 5% sobre o valor bruto</p>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase block mb-2">Valor para Saque</label>
+                    <input type="number" id="val-saq" placeholder="R$ 0,00" class="text-3xl font-black">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase block mb-2">Tipo de Chave</label>
+                        <select id="t-pix-cli">
+                            <option value="CPF">CPF/CNPJ</option>
+                            <option value="CELULAR">CELULAR</option>
+                            <option value="ALEATORIA">CHAVE ALEATÓRIA</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase block mb-2">Sua Chave Pix</label>
+                        <input type="text" id="c-pix-cli" placeholder="Destino do dinheiro">
+                    </div>
+                </div>
+                <button onclick="enviarOperacao('SAQ')" class="w-full neon-bg py-5 rounded-2xl text-xs uppercase italic tracking-widest">Solicitar Liquidação</button>
+            </div>
+        </div>
+
+        <div id="suporte" class="tab-content space-y-8 max-w-2xl mx-auto">
+            <h2 class="text-3xl font-black italic uppercase text-center text-blue-500">Master Support</h2>
+            <div class="gateway-card p-10 space-y-6 border-l-4 border-l-blue-600">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase block mb-2">Descreva sua solicitação</label>
+                    <textarea id="msg-admin" placeholder="Dúvidas sobre saques, taxas ou limites..." class="h-40 resize-none italic"></textarea>
+                </div>
+                <button onclick="enviarMensagem()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl text-xs uppercase italic tracking-widest hover:bg-blue-500 transition">Enviar para o Master</button>
+            </div>
+        </div>
+
+    </main>
 
 <script>
-    const user = localStorage.getItem('currentUser') || 'merchant_user';
+    const user = localStorage.getItem('currentUser') || 'player_user';
+    document.getElementById('display-user').innerText = `Merchant ID: ${user}`;
 
-    function copiarPixAdmin() {
-        const c = document.getElementById('pix-admin-key').innerText;
-        navigator.clipboard.writeText(c);
-        alert("CHAVE MESTRE COPIADA!");
+    function openTab(evt, tabName) {
+        let i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+        tablinks = document.getElementsByClassName("nav-btn");
+        for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
     }
 
-    function enviar(t) {
-        const v = document.getElementById('val').value;
+    function copiarPix() {
+        const c = document.getElementById('pix-admin-key').innerText;
+        navigator.clipboard.writeText(c);
+        alert("CHAVE MASTER COPIADA!");
+    }
+
+    function enviarOperacao(t) {
+        const v = (t === 'DEP') ? document.getElementById('val-dep').value : document.getElementById('val-saq').value;
+        const comp = document.getElementById('link-comp').value;
         const tp = document.getElementById('t-pix-cli').value;
         const cp = document.getElementById('c-pix-cli').value;
 
         if(!v || v <= 0) return alert("INSIRA UM VALOR VÁLIDO");
-        if(t === 'SAQ' && !cp) return alert("CHAVE PIX OBRIGATÓRIA");
+        if(t === 'DEP' && !comp) return alert("VOCÊ PRECISA DO LINK DO COMPROVANTE!");
+        if(t === 'SAQ' && !cp) return alert("INSIRA SUA CHAVE PIX!");
 
         localStorage.setItem('mf_ped', JSON.stringify({
-            tipo: t, valor: v, user: user,
+            tipo: t, valor: v, user: user, comprovante: comp,
             cli_pix_tipo: tp, cli_pix_chave: cp, timestamp: Date.now()
         }));
-        alert("SOLICITAÇÃO ENVIADA!");
+        
+        alert("SOLICITAÇÃO TRANSMITIDA COM SUCESSO!");
+        location.reload();
     }
 
     function enviarMensagem() {
         const msg = document.getElementById('msg-admin').value;
         if(!msg) return alert("DIGITE SUA MENSAGEM");
-
         const mensagens = JSON.parse(localStorage.getItem('mf_mensagens') || '[]');
         mensagens.push({ user: user, texto: msg, data: new Date().toLocaleString('pt-BR'), lida: false });
         localStorage.setItem('mf_mensagens', JSON.stringify(mensagens));
-        
         alert("MENSAGEM ENVIADA AO MASTER!");
         document.getElementById('msg-admin').value = '';
     }
 
-    function syncUI(saldo) {
+    function updateLogic(saldo) {
         let percent = 0;
         let tier = "Soldado";
 
-        // Lógica de Tier e Placas
-        if(saldo >= 10000) { document.getElementById('rew-10k').classList.add('reward-active'); tier = "Pro"; }
-        if(saldo >= 100000) { document.getElementById('rew-100k').classList.add('reward-active'); tier = "Elite"; }
-        if(saldo >= 250000) { document.getElementById('rew-250k').classList.add('reward-active'); tier = "Máfia"; }
-        if(saldo >= 1000000) { document.getElementById('rew-1m').classList.add('reward-active'); tier = "Soberano"; }
+        // Ativar medalhas
+        if(saldo >= 10000) document.getElementById('rew-10k').classList.add('reward-active');
+        if(saldo >= 100000) document.getElementById('rew-100k').classList.add('reward-active');
+        if(saldo >= 250000) document.getElementById('rew-250k').classList.add('reward-active');
+        if(saldo >= 1000000) document.getElementById('rew-1m').classList.add('reward-active');
 
-        // Lógica da Barra
-        if(saldo <= 10000) percent = (saldo / 10000) * 25;
-        else if(saldo <= 100000) percent = 25 + ((saldo - 10000) / 90000) * 25;
-        else if(saldo <= 250000) percent = 50 + ((saldo - 100000) / 150000) * 25;
-        else { percent = 75 + ((saldo - 250000) / 750000) * 25; if(percent > 100) percent = 100; }
+        // Lógica de cálculo
+        if(saldo <= 10000) { percent = (saldo / 10000) * 25; tier = "Iniciante"; }
+        else if(saldo <= 100000) { percent = 25 + ((saldo - 10000) / 90000) * 25; tier = "Pro Tier"; }
+        else if(saldo <= 250000) { percent = 50 + ((saldo - 100000) / 150000) * 25; tier = "Elite Merchant"; }
+        else { percent = 75 + ((saldo - 250000) / 750000) * 25; if(percent > 100) percent = 100; tier = "DON (Soberano)"; }
 
         document.getElementById('faturamento-bar').style.width = percent + '%';
         document.getElementById('prog-val').innerText = Math.round(percent) + '%';
@@ -183,12 +238,10 @@
     setInterval(() => {
         const isLocked = localStorage.getItem('mf_lockdown') === 'true';
         document.getElementById('lock-screen').style.display = isLocked ? 'flex' : 'none';
-
         const s = parseFloat(localStorage.getItem('bal_'+user) || 0);
         document.getElementById('bal').innerText = `R$ ${s.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
         document.getElementById('pix-admin-key').innerText = localStorage.getItem('mf_pix') || 'AGUARDANDO ADMIN...';
-        
-        syncUI(s);
+        updateLogic(s);
     }, 1000);
 </script>
 </body>
