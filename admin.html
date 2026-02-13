@@ -1,76 +1,113 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8"><title>Soberano | Admin MF</title>
+    <meta charset="UTF-8"><title>Soberano | Master Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #020617; color: white; font-family: 'Inter', sans-serif; }
+        .tab-active { border-bottom: 2px solid #22c55e; color: #22c55e; }
+        .log-line { border-left: 2px solid #1e293b; padding-left: 10px; margin-bottom: 4px; }
+    </style>
 </head>
-<body class="bg-[#020617] text-white p-4 md:p-10 font-sans">
-    <div class="max-w-4xl mx-auto space-y-6">
-        <header class="flex justify-between items-center bg-[#0f172a] p-6 rounded-3xl border border-slate-800 shadow-xl">
-            <h1 class="text-xl font-black text-green-500 italic">MF<span class="text-white">ADMIN</span></h1>
-            <button onclick="localStorage.clear();location.href='index.html'" class="text-[10px] font-bold text-red-500 uppercase tracking-widest bg-red-500/10 px-4 py-2 rounded-full">Sair do Master</button>
+<body class="p-4 md:p-8">
+    <div class="max-w-5xl mx-auto space-y-6">
+        <header class="flex justify-between items-center bg-[#0f172a] p-6 rounded-3xl border border-slate-800 shadow-2xl">
+            <h1 class="text-xl font-black text-green-500 italic uppercase">MF<span class="text-white">ADMIN</span></h1>
+            <div class="flex items-center gap-3 bg-slate-900 px-4 py-2 rounded-full border border-slate-800">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span class="text-[10px] font-bold uppercase tracking-widest">Soberano Online</span>
+            </div>
         </header>
 
-        <div class="bg-[#0f172a] p-8 rounded-[35px] border border-slate-800 shadow-lg">
-            <h3 class="text-xs font-black text-green-500 uppercase mb-6 italic underline">Configuração do Sistema</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="space-y-2">
-                    <label class="text-[9px] text-slate-500 font-bold uppercase ml-2">Sua Chave PIX Atual</label>
-                    <input type="text" id="c-pix" placeholder="E-mail, CPF ou Aleatória" class="w-full bg-[#1e293b] p-4 rounded-2xl outline-none text-xs font-bold border border-slate-700 focus:border-green-500">
-                </div>
-                <div class="flex items-end">
-                    <button onclick="salvar()" class="w-full bg-green-500 text-black font-black py-4 rounded-2xl uppercase text-[10px] hover:bg-green-400 transition">Atualizar Chave PIX</button>
-                </div>
-            </div>
+        <nav class="flex gap-8 border-b border-slate-800 px-4 overflow-x-auto">
+            <button onclick="openTab('fin')" id="t-fin" class="tab-active pb-3 text-[10px] font-bold uppercase">💰 Financeiro</button>
+            <button onclick="openTab('logs')" id="t-logs" class="pb-3 text-slate-500 text-[10px] font-bold uppercase">📡 Atividades</button>
+            <button onclick="openTab('cfg')" id="t-cfg" class="pb-3 text-slate-500 text-[10px] font-bold uppercase">⚙️ Ajustes</button>
+        </nav>
+
+        <div id="fin" class="tab-content space-y-6">
+            <div id="fila" class="grid grid-cols-1 gap-4"></div>
         </div>
 
-        <div class="bg-[#0f172a] p-8 rounded-[35px] border border-slate-800 shadow-lg">
-            <h3 class="text-xs font-black text-slate-400 uppercase mb-6 italic underline">Transações Pendentes</h3>
-            <div id="fila" class="space-y-4"></div>
+        <div id="logs" class="hidden tab-content bg-[#0f172a] p-6 rounded-[35px] border border-slate-800 h-[500px] flex flex-col">
+            <h3 class="text-[10px] font-black text-purple-500 uppercase mb-4 italic underline">Monitor de Fraude e Atividade</h3>
+            <div id="activity-log" class="flex-1 overflow-y-auto font-mono text-[10px] text-slate-400 space-y-1"></div>
+        </div>
+
+        <div id="cfg" class="hidden tab-content bg-[#0f172a] p-8 rounded-[35px] border border-slate-800 space-y-6">
+            <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase mb-2 block">Chave PIX de Recebimento</label>
+                <div class="flex gap-2">
+                    <input type="text" id="c-pix" class="flex-1 bg-[#1e293b] p-4 rounded-2xl outline-none border border-slate-700 text-xs font-bold">
+                    <button onclick="salvarCfg()" class="bg-green-500 text-black px-8 rounded-2xl font-black uppercase text-[10px]">Salvar</button>
+                </div>
+            </div>
+            <button onclick="localStorage.clear(); location.reload();" class="text-red-500 text-[9px] font-bold uppercase underline">Resetar Todo o Sistema (Cuidado)</button>
         </div>
     </div>
 
 <script>
-    function salvar() {
-        const pix = document.getElementById('c-pix').value;
-        const conf = JSON.parse(localStorage.getItem('mf_config') || '{}');
-        conf.pix = pix;
-        localStorage.setItem('mf_config', JSON.stringify(conf));
-        alert("PIX ATUALIZADO! Já mudou no painel dos clientes.");
+    function openTab(t) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        document.getElementById(t).classList.remove('hidden');
+        document.querySelectorAll('nav button').forEach(b => b.className = "pb-3 text-slate-500 text-[10px] font-bold uppercase");
+        document.getElementById('t-'+t).className = "tab-active pb-3 text-[10px] font-bold uppercase";
+    }
+
+    function addLog(m, type="INFO") {
+        let logs = JSON.parse(localStorage.getItem('mf_logs') || '[]');
+        logs.unshift(`[${new Date().toLocaleTimeString()}] [${type}] ${m}`);
+        localStorage.setItem('mf_logs', JSON.stringify(logs.slice(0,100)));
+        renderLogs();
+    }
+
+    function renderLogs() {
+        const logs = JSON.parse(localStorage.getItem('mf_logs') || '[]');
+        document.getElementById('activity-log').innerHTML = logs.map(l => `<div class="log-line ${l.includes('FRAUDE')?'text-red-500':''}">> ${l}</div>`).join('');
     }
 
     function render() {
         const p = JSON.parse(localStorage.getItem('mf_ped') || 'null');
         const fila = document.getElementById('fila');
-        if(!p) fila.innerHTML = `<p class="text-slate-600 italic text-center text-[10px] py-16 uppercase font-bold tracking-[0.3em]">Nenhum pedido no radar...</p>`;
+        if(!p) fila.innerHTML = `<div class="text-center p-20 text-slate-600 text-[10px] font-bold uppercase italic tracking-widest">Nenhuma atividade pendente...</div>`;
         else {
             fila.innerHTML = `
-            <div class="p-6 rounded-3xl bg-[#1e293b] border border-slate-700 flex justify-between items-center animate-pulse">
+            <div class="bg-[#1e293b] p-8 rounded-[40px] border border-slate-700 flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
                 <div>
-                    <p class="text-[10px] font-bold text-green-500 uppercase">${p.tipo} SOLICITADO POR ${p.user}</p>
-                    <p class="text-3xl font-black italic tracking-tighter">R$ ${p.valor}</p>
+                    <span class="bg-green-900/40 text-green-400 text-[9px] px-3 py-1 rounded-full font-bold uppercase">${p.tipo} SOLICITADO</span>
+                    <h2 class="text-4xl font-black italic mt-2 tracking-tighter">R$ ${p.valor} <span class="text-sm text-slate-500">por ${p.user}</span></h2>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="proc('OK','${p.valor}','${p.user}')" class="bg-green-500 text-black px-8 py-3 rounded-2xl font-black text-[10px] uppercase">Aprovar</button>
-                    <button onclick="proc('REC',0,'${p.user}')" class="bg-slate-900 text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase">Lixo</button>
+                <div class="flex flex-col items-center gap-4">
+                    ${p.comprovante ? `<a href="${p.comprovante}" target="_blank" class="bg-blue-600 text-white text-[10px] px-6 py-2 rounded-full font-bold uppercase animate-bounce">Ver Comprovante</a>` : '<span class="text-red-500 text-[9px] font-bold uppercase">Sem Comprovante</span>'}
+                    <div class="flex gap-2">
+                        <button onclick="proc('OK','${p.valor}','${p.user}','${p.tipo}')" class="bg-green-500 text-black px-8 py-3 rounded-2xl font-black uppercase text-xs">Aprovar</button>
+                        <button onclick="proc('REC',0,'${p.user}')" class="bg-slate-900 text-white px-8 py-3 rounded-2xl font-bold uppercase text-xs">Recusar</button>
+                    </div>
                 </div>
             </div>`;
         }
+        renderLogs();
     }
 
-    function proc(s, v, u) {
+    function proc(s, v, u, tipo) {
         if(s === 'OK') {
             let b = parseFloat(localStorage.getItem('bal_'+u) || 0);
-            localStorage.setItem('bal_'+u, (b + parseFloat(v)).toFixed(2));
+            let total = tipo === 'SAQ' ? b - parseFloat(v) : b + parseFloat(v);
+            localStorage.setItem('bal_'+u, total.toFixed(2));
+            addLog(`DINHEIRO LIBERADO: R$ ${v} para ${u}`, "FINANCEIRO");
+        } else {
+            addLog(`PEDIDO RECUSADO: ${u}`, "ALERTA");
         }
-        localStorage.removeItem('mf_ped');
-        location.reload();
+        localStorage.removeItem('mf_ped'); render();
     }
-    
-    // Carrega o pix atual no input ao abrir
-    const c = JSON.parse(localStorage.getItem('mf_config') || '{}');
-    if(c.pix) document.getElementById('c-pix').value = c.pix;
 
+    function salvarCfg() {
+        localStorage.setItem('mf_pix', document.getElementById('c-pix').value);
+        addLog(`CHAVE PIX ALTERADA para: ${document.getElementById('c-pix').value}`, "SISTEMA");
+        alert("Salvo!");
+    }
+
+    document.getElementById('c-pix').value = localStorage.getItem('mf_pix') || '';
     setInterval(render, 2000);
     render();
 </script>
