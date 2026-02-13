@@ -2,79 +2,90 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | MFpay</title>
+    <title>Painel | MFpay</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>.tab { display: none; } .tab.active { display: block; }</style>
+    <style>.tab { display: none; } .tab.active { display: block; animation: slide 0.4s ease; } .nav-link { opacity: 0.3; transition: 0.3s; cursor: pointer; } .nav-link.active { opacity: 1; color: var(--main-cor); }</style>
 </head>
-<body class="bg-black text-white p-6 md:p-16">
-    <div class="max-w-4xl mx-auto">
-        <header class="flex justify-between items-center mb-12">
-            <h1 id="wl-side" class="text-3xl font-black italic text-[#80ff44]">MFPAY</h1>
-            <nav class="flex gap-6 text-[10px] font-black uppercase tracking-widest">
-                <button onclick="tab('d')" class="hover:text-[#80ff44]">Início</button>
-                <button onclick="tab('r')" class="hover:text-[#80ff44]">Recarga</button>
-                <button onclick="tab('s')" class="hover:text-[#80ff44]">Saque</button>
-            </nav>
-        </header>
+<body class="bg-black text-white min-h-screen flex flex-col md:flex-row">
+    <aside class="w-full md:w-80 bg-[#050505] border-r border-white/5 p-12 flex md:flex-col gap-10">
+        <h1 id="wl-side" class="text-3xl font-black italic text-[#80ff44]">MFPAY</h1>
+        <nav class="flex md:flex-col gap-8 text-[11px] font-black uppercase">
+            <div onclick="tab('d', this)" class="nav-link active">Início</div>
+            <div onclick="tab('r', this)" class="nav-link">Recarga</div>
+            <div onclick="tab('s', this)" class="nav-link">Saque</div>
+            <div onclick="tab('sac', this)" class="nav-link">Suporte SAC</div>
+        </nav>
+    </aside>
 
-        <div id="d" class="tab active">
-            <div class="bg-[#050505] p-16 rounded-[60px] border border-white/5 text-center shadow-2xl">
-                <p class="opacity-30 text-[10px] uppercase font-black mb-4 tracking-widest">Saldo Disponível</p>
+    <main class="flex-1 p-10 md:p-20 overflow-y-auto">
+        <section id="d" class="tab active">
+            <h2 class="text-5xl md:text-8xl font-black italic mb-10 uppercase">Capital <span id="wl-txt" class="text-[#80ff44]">Ativo</span></h2>
+            <div class="bg-[#0a0a0a] p-16 rounded-[50px] border border-white/5 shadow-2xl">
+                <p class="text-[10px] opacity-30 font-black mb-4 uppercase tracking-widest">Saldo Disponível</p>
                 <h2 id="bal" class="text-7xl md:text-9xl font-black tracking-tighter">R$ 0,00</h2>
+                <p id="user-display" class="text-[10px] opacity-20 mt-4 uppercase font-black"></p>
             </div>
-        </div>
+        </section>
 
-        <div id="r" class="tab max-w-xl mx-auto">
-            <h2 class="text-3xl font-black italic mb-8 uppercase">Injetar Capital</h2>
-            <input type="number" id="v-dep" placeholder="Valor R$" class="w-full bg-[#0a0a0a] p-6 rounded-2xl mb-4 border border-white/10 text-2xl font-black outline-none focus:border-[#80ff44]">
-            <label class="block p-10 border-2 border-dashed border-white/10 rounded-2xl text-center mb-6 cursor-pointer hover:border-[#80ff44]">
-                <input type="file" id="img" accept="image/*" class="hidden" onchange="readImg()">
-                <span id="img-txt" class="opacity-40 font-black uppercase text-xs">Anexar Comprovante (Foto)</span>
+        <section id="r" class="tab max-w-xl mx-auto text-center md:text-left">
+            <h2 class="text-3xl font-black mb-8 uppercase">Injetar Saldo</h2>
+            <input type="number" id="v-in" placeholder="Valor R$" class="w-full bg-[#0a0a0a] p-8 rounded-3xl mb-6 border border-white/5 text-3xl font-black outline-none">
+            <label class="block p-12 border-2 border-dashed border-white/5 rounded-[40px] cursor-pointer mb-6">
+                <input type="file" id="f-in" class="hidden" onchange="readF()">
+                <span id="f-label" class="opacity-30 font-black uppercase text-xs">Anexar Comprovante</span>
             </label>
-            <button onclick="enviar('DEPOSITO')" class="w-full bg-[#80ff44] text-black py-6 rounded-3xl font-black uppercase btn-wl">Confirmar</button>
-        </div>
+            <button onclick="send('DEPOSITO')" id="btn-dep" class="w-full bg-[#80ff44] text-black py-8 rounded-[35px] font-black uppercase italic text-xl">Confirmar</button>
+        </section>
 
-        <div id="s" class="tab max-w-xl mx-auto">
-            <h2 class="text-3xl font-black italic mb-8 uppercase text-blue-500">Solicitar Saque</h2>
-            <input type="number" id="v-saq" placeholder="Valor R$" class="w-full bg-[#0a0a0a] p-6 rounded-2xl mb-4 border border-white/10 text-2xl font-black outline-none">
-            <input type="text" id="px" placeholder="Chave PIX" class="w-full bg-[#0a0a0a] p-6 rounded-2xl mb-6 border border-white/10 font-bold outline-none">
-            <button onclick="enviar('SAQUE')" class="w-full bg-white text-black py-6 rounded-3xl font-black uppercase">Pedir Liquidação</button>
-        </div>
-    </div>
+        <section id="s" class="tab max-w-xl mx-auto">
+            <h2 class="text-3xl font-black mb-8 uppercase text-blue-500">Sacar</h2>
+            <input type="number" id="v-out" placeholder="Valor R$" class="w-full bg-[#0a0a0a] p-8 rounded-3xl mb-4 text-2xl font-black outline-none">
+            <input type="text" id="p-out" placeholder="Chave PIX" class="w-full bg-[#0a0a0a] p-8 rounded-3xl mb-6 font-bold outline-none">
+            <button onclick="send('SAQUE')" class="w-full bg-white text-black py-8 rounded-[35px] font-black uppercase italic text-xl">Pedir Saque</button>
+        </section>
+
+        <section id="sac" class="tab max-w-xl mx-auto">
+            <h2 class="text-3xl font-black mb-8 uppercase">SAC Suporte</h2>
+            <textarea id="sac-msg" placeholder="Descreva sua dúvida..." class="w-full bg-[#0a0a0a] p-8 rounded-3xl h-48 outline-none font-bold border border-white/5 mb-6"></textarea>
+            <button onclick="send('SAC')" class="w-full bg-zinc-800 py-6 rounded-3xl font-black uppercase italic">Abrir Ticket</button>
+        </section>
+    </main>
 
     <script>
         const API = 'https://sheetdb.io/api/v1/n1iq28pv28d009pq';
-        let fotoData = "";
+        let fotoB64 = "";
+        const uLog = sessionStorage.getItem('mf_user') || 'Nando';
 
-        function tab(id) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-        function readImg() {
-            const file = document.getElementById('img').files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => { fotoData = reader.result; document.getElementById('img-txt').innerText = "FOTO CARREGADA!"; document.getElementById('img-txt').style.color = "#80ff44"; }
-            reader.readAsDataURL(file);
+        async function track(loc) { 
+            await fetch(API, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ data: [{ id: 'LOG-'+Date.now(), merchant: uLog, tipo: 'LOG_ATIVIDADE', data_hora: `Navegou para: ${loc}` }]}) });
         }
 
-        async function enviar(tipo) {
-            const v = tipo === 'DEPOSITO' ? document.getElementById('v-dep').value : document.getElementById('v-saq').value;
-            const pix = document.getElementById('px').value;
-            if(!v) return alert("Digite o valor!");
-            await fetch(API, {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ data: [{ id: 'TX'+Date.now(), merchant: 'Nando', tipo: tipo, valor: v, comprovante: fotoData, chave_pix: pix, status: 'Pendente' }]})
-            });
-            alert("Protocolo Enviado!"); location.reload();
+        function tab(id, el) { 
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); 
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.getElementById(id).classList.add('active'); 
+            el.classList.add('active');
+            track(id.toUpperCase());
         }
 
-        async function carregar() {
+        function readF() { const f = document.getElementById('f-in').files[0]; const r = new FileReader(); r.onloadend = () => { fotoB64 = r.result; document.getElementById('f-label').innerText="CARREGADO!"; document.getElementById('f-label').style.color="#80ff44"; }; r.readAsDataURL(f); }
+
+        async function send(t) {
+            const v = t==='DEPOSITO'?document.getElementById('v-in').value:document.getElementById('v-out').value;
+            const dh = t==='SAC'?document.getElementById('sac-msg').value:new Date().toLocaleString();
+            await fetch(API, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ data: [{ id: Date.now(), merchant: uLog, tipo: t, valor: v||0, comprovante: fotoB64, chave_pix: document.getElementById('p-out').value, status: (t==='SAC'?'Aberto':'Pendente'), data_hora: dh }]}) });
+            alert("SINCROZINADO!"); location.reload();
+        }
+
+        async function init() {
             const res = await fetch(API); const d = await res.json();
-            const saldo = d.filter(i => i.merchant === 'Nando' && i.status === 'Aprovado').reduce((a, b) => b.tipo === 'DEPOSITO' ? a + parseFloat(b.valor) : a - parseFloat(b.valor), 0);
-            document.getElementById('bal').innerText = `R$ ${saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            const s = d.filter(i => i.merchant === uLog && i.status === 'Aprovado').reduce((acc, c) => c.tipo==='DEPOSITO'?acc+parseFloat(c.valor):acc-parseFloat(c.valor), 0);
+            document.getElementById('bal').innerText = `R$ ${s.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+            document.getElementById('user-display').innerText = `CONTA ATIVA: ${uLog}`;
             const wl = JSON.parse(localStorage.getItem('mf_white_label') || '{"nome":"MFpay","cor":"#80ff44"}');
-            document.getElementById('wl-side').innerText = wl.nome.toUpperCase();
-            document.getElementById('wl-side').style.color = wl.cor;
-            document.querySelectorAll('.btn-wl').forEach(b => b.style.backgroundColor = wl.cor);
+            document.getElementById('wl-side').innerText = wl.nome.toUpperCase(); document.getElementById('wl-side').style.color = wl.cor; document.getElementById('wl-txt').style.color = wl.cor; document.getElementById('btn-dep').style.backgroundColor = wl.cor; document.body.style.setProperty('--main-cor', wl.cor);
         }
-        carregar();
+        init();
     </script>
 </body>
 </html>
