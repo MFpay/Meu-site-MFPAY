@@ -16,6 +16,7 @@
         input { background: #000 !important; border: 1px solid #1a1a1a !important; border-radius: 14px; color: #fff; padding: 14px; outline: none; width: 100%; }
         .log-line { font-family: 'Courier New', Courier, monospace; font-size: 10px; padding: 6px 12px; border-bottom: 1px solid #111; }
         .log-aviso { color: #ffaa00; } .log-critico { color: #ff4444; font-weight: bold; background: #200; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -66,7 +67,7 @@
                     <p class="text-[10px] font-black text-gray-600 uppercase mb-4">Chave Pix para Recebimento (Injeção)</p>
                     <input type="text" id="master-pix" class="text-white font-black uppercase">
                 </div>
-                <button onclick="localStorage.setItem('mf_pix', document.getElementById('master-pix').value); alert('MFpay MASTER: Chave Pix Atualizada!')" class="w-full bg-[#80ff44] text-black font-black py-4 rounded-xl uppercase italic">Atualizar Chave Global</button>
+                <button onclick="salvarConfigMaster()" class="w-full bg-[#80ff44] text-black font-black py-4 rounded-xl uppercase italic">Atualizar Chave Global</button>
             </div>
         </div>
     </main>
@@ -80,73 +81,109 @@
         document.querySelectorAll('.tab-sec').forEach(x => x.classList.add('hidden'));
         document.getElementById(t).classList.remove('hidden');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        const activeBtn = { 'fila': 'btn-fila', 'merchants': 'btn-mer', 'auditoria': 'btn-aud', 'config': 'btn-cfg' };
+        document.getElementById(activeBtn[t]).classList.add('active');
+    }
+
+    function salvarConfigMaster() {
+        const pix = document.getElementById('master-pix').value;
+        localStorage.setItem('mf_pix', pix);
+        alert('MFpay MASTER: Chave Pix Atualizada!');
     }
 
     function renderMerchants() {
-        const s = document.getElementById('search-mer').value.toLowerCase();
-        const l = document.getElementById('lista-merchants'); l.innerHTML = '';
-        for(let i=0; i<localStorage.length; i++) {
-            let k = localStorage.key(i);
-            if(k.startsWith('bal_')) {
-                let u = k.replace('bal_','');
-                if(u.includes(s)) {
-                    l.innerHTML += `
-                        <tr class="border-t border-white/5 font-bold italic">
-                            <td class="p-8 uppercase">${u}</td>
-                            <td class="p-8 text-[#80ff44] text-xl">R$ ${localStorage.getItem(k)}</td>
-                            <td class="p-8 text-right"><button onclick="let n=prompt('Ajustar Saldo MF de ${u}:');if(n)localStorage.setItem('${k}',n)" class="text-blue-500 hover:underline">MODIFICAR</button></td>
-                        </tr>`;
+        try {
+            const s = document.getElementById('search-mer').value.toLowerCase();
+            const l = document.getElementById('lista-merchants'); 
+            l.innerHTML = '';
+            for(let i=0; i<localStorage.length; i++) {
+                let k = localStorage.key(i);
+                if(k.startsWith('bal_')) {
+                    let u = k.replace('bal_','');
+                    if(u.toLowerCase().includes(s)) {
+                        let saldo = parseFloat(localStorage.getItem(k) || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                        l.innerHTML += `
+                            <tr class="border-t border-white/5 font-bold italic">
+                                <td class="p-8 uppercase">${u}</td>
+                                <td class="p-8 text-[#80ff44] text-xl">R$ ${saldo}</td>
+                                <td class="p-8 text-right"><button onclick="ajustarSaldo('${k}', '${u}')" class="text-blue-500 hover:underline">MODIFICAR</button></td>
+                            </tr>`;
+                    }
                 }
             }
+        } catch(e) { console.error("Erro merchants:", e); }
+    }
+
+    function ajustarSaldo(k, u) {
+        let n = prompt(`Ajustar Saldo MF de ${u}:`);
+        if(n !== null) {
+            localStorage.setItem(k, parseFloat(n).toFixed(2));
+            renderMerchants();
         }
     }
 
     function decidir(acao) {
-        const ped = JSON.parse(localStorage.getItem('mf_ped'));
-        const hist = JSON.parse(localStorage.getItem('hist_'+ped.user) || '[]');
-        
-        const index = hist.findIndex(i => i.id === ped.id);
-        if(index !== -1) hist[index].status = acao === 'APR' ? 'Aprovado' : 'Recusado';
-        localStorage.setItem('hist_'+ped.user, JSON.stringify(hist));
+        try {
+            const ped = JSON.parse(localStorage.getItem('mf_ped'));
+            if(!ped) return;
 
-        if(acao === 'APR') {
-            const cur = parseFloat(localStorage.getItem('bal_'+ped.user) || 0);
-            const val = parseFloat(ped.valor);
-            localStorage.setItem('bal_'+ped.user, (ped.tipo === 'DEP' ? cur + val : cur - val).toFixed(2));
-        }
-        localStorage.removeItem('mf_ped'); renderPedidos();
+            const histRaw = localStorage.getItem('hist_'+ped.user);
+            const hist = histRaw ? JSON.parse(histRaw) : [];
+            
+            const index = hist.findIndex(i => i.id === ped.id);
+            if(index !== -1) hist[index].status = acao === 'APR' ? 'Aprovado' : 'Recusado';
+            localStorage.setItem('hist_'+ped.user, JSON.stringify(hist));
+
+            if(acao === 'APR') {
+                const cur = parseFloat(localStorage.getItem('bal_'+ped.user) || 0);
+                const val = parseFloat(ped.valor);
+                const novoSaldo = ped.tipo === 'DEP' ? cur + val : cur - val;
+                localStorage.setItem('bal_'+ped.user, novoSaldo.toFixed(2));
+            }
+            
+            localStorage.removeItem('mf_ped');
+            renderPedidos();
+        } catch(e) { console.error("Erro decidir:", e); }
     }
 
     function renderPedidos() {
-        const ped = JSON.parse(localStorage.getItem('mf_ped'));
-        const l = document.getElementById('lista-pedidos');
-        if(!ped) { 
-            l.innerHTML = '<div class="admin-card p-20 text-center text-gray-800 font-black italic uppercase">Vigilância Estável: Nenhuma Operação Pendente</div>'; 
-            document.getElementById('vol-esp').innerText = 'R$ 0,00';
-            return; 
-        }
-        
-        if(ped.timestamp !== ultimoId) { document.getElementById('snd').play(); ultimoId = ped.timestamp; }
-        document.getElementById('vol-esp').innerText = `R$ ${parseFloat(ped.valor).toLocaleString('pt-BR')}`;
-        
-        let infoExtra = ped.tipo === 'SAQ' ? `PIX: ${ped.pix_tipo} • ${ped.pix_chave}` : `<a href="${ped.comprovante}" target="_blank" class="text-blue-500 underline uppercase">Ver Comprovante</a>`;
+        try {
+            const pedRaw = localStorage.getItem('mf_ped');
+            const ped = pedRaw ? JSON.parse(pedRaw) : null;
+            const l = document.getElementById('lista-pedidos');
 
-        l.innerHTML = `
-            <div class="admin-card p-12 flex justify-between items-center ${ped.risco === 'ALTO' ? 'risco-alto' : ''}">
-                <div>
-                    <h3 class="font-black italic text-3xl uppercase text-white">${ped.user} ${ped.risco==='ALTO'?'<span class="text-red-500 ml-6 text-xs animate-pulse">[RISCO DETECTADO]</span>':''}</h3>
-                    <p class="text-gray-600 font-black uppercase text-xs mt-2 italic">${ped.tipo === 'SAQ' ? 'Pedido de Liquidação' : 'Pedido de Injeção'}</p>
-                    <div class="mt-4 text-[10px] text-[#80ff44] font-mono font-bold">${infoExtra}</div>
-                </div>
-                <div class="text-right">
-                    <p class="text-gray-700 text-[10px] font-black uppercase mb-1">Montante</p>
-                    <h2 class="text-5xl font-black text-[#80ff44] italic">R$ ${ped.valor}</h2>
-                    <div class="mt-6 space-x-4">
-                        <button onclick="decidir('APR')" class="bg-[#80ff44] text-black px-12 py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-white transition">Aprovar</button>
-                        <button onclick="decidir('REC')" class="text-red-500 font-black uppercase text-[10px] italic hover:underline">Recusar Transação</button>
+            if(!ped) { 
+                l.innerHTML = '<div class="admin-card p-20 text-center text-gray-800 font-black italic uppercase">Vigilância Estável: Nenhuma Operação Pendente</div>'; 
+                document.getElementById('vol-esp').innerText = 'R$ 0,00';
+                return; 
+            }
+            
+            if(ped.id !== ultimoId) { 
+                document.getElementById('snd').play().catch(() => {}); 
+                ultimoId = ped.id; 
+            }
+
+            document.getElementById('vol-esp').innerText = `R$ ${parseFloat(ped.valor).toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+            
+            let infoExtra = ped.tipo === 'SAQ' ? `PIX: ${ped.pix_tipo} • ${ped.pix_chave}` : `<a href="${ped.comprovante}" target="_blank" class="text-blue-500 underline uppercase">Ver Comprovante</a>`;
+
+            l.innerHTML = `
+                <div class="admin-card p-12 flex justify-between items-center ${ped.risco === 'ALTO' ? 'risco-alto' : ''}">
+                    <div>
+                        <h3 class="font-black italic text-3xl uppercase text-white">${ped.user} ${ped.risco==='ALTO'?'<span class="text-red-500 ml-6 text-xs animate-pulse">[RISCO DETECTADO]</span>':''}</h3>
+                        <p class="text-gray-600 font-black uppercase text-xs mt-2 italic">${ped.tipo === 'SAQ' ? 'Pedido de Liquidação' : 'Pedido de Injeção'}</p>
+                        <div class="mt-4 text-[10px] text-[#80ff44] font-mono font-bold">${infoExtra}</div>
                     </div>
-                </div>
-            </div>`;
+                    <div class="text-right">
+                        <p class="text-gray-700 text-[10px] font-black uppercase mb-1">Montante</p>
+                        <h2 class="text-5xl font-black text-[#80ff44] italic">R$ ${parseFloat(ped.valor).toLocaleString('pt-BR', {minimumFractionDigits:2})}</h2>
+                        <div class="mt-6 space-x-4">
+                            <button onclick="decidir('APR')" class="bg-[#80ff44] text-black px-12 py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-white transition">Aprovar</button>
+                            <button onclick="decidir('REC')" class="text-red-500 font-black uppercase text-[10px] italic hover:underline">Recusar Transação</button>
+                        </div>
+                    </div>
+                </div>`;
+        } catch(e) { console.error("Erro renderPedidos:", e); }
     }
 
     function toggleLockdown() {
@@ -154,33 +191,44 @@
         localStorage.setItem('mf_lockdown', !s);
     }
 
+    // LOOP PRINCIPAL (CORRIGIDO)
     setInterval(() => {
-        let online = 0; let total = 0; let riscos = 0; const agora = Date.now();
-        for(let i=0; i<localStorage.length; i++) {
-            let k = localStorage.key(i);
-            if(k.startsWith('online_') && (agora - parseInt(localStorage.getItem(k)) < 10000)) online++;
-            if(k.startsWith('bal_')) total += parseFloat(localStorage.getItem(k));
-        }
+        try {
+            let online = 0; let total = 0; let riscos = 0; const agora = Date.now();
+            for(let i=0; i<localStorage.length; i++) {
+                let k = localStorage.key(i);
+                if(k.startsWith('online_')) {
+                    if(agora - parseInt(localStorage.getItem(k)) < 15000) online++;
+                }
+                if(k.startsWith('bal_')) total += parseFloat(localStorage.getItem(k) || 0);
+            }
 
-        const ped = JSON.parse(localStorage.getItem('mf_ped'));
-        if(ped && ped.risco === 'ALTO') riscos = 1;
+            const pedRaw = localStorage.getItem('mf_ped');
+            if(pedRaw) {
+                const ped = JSON.parse(pedRaw);
+                if(ped.risco === 'ALTO') riscos = 1;
+            }
 
-        document.getElementById('stat-online').innerText = online;
-        document.getElementById('stat-total').innerText = `R$ ${total.toLocaleString('pt-BR')}`;
-        document.getElementById('stat-risco').innerText = riscos;
+            document.getElementById('stat-online').innerText = online;
+            document.getElementById('stat-total').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('stat-risco').innerText = riscos;
 
-        const logs = JSON.parse(localStorage.getItem('mf_logs_auditoria') || []);
-        document.getElementById('container-logs').innerHTML = logs.map(l => `
-            <div class="log-line ${l.nivel === 'CRÍTICO' ? 'log-critico' : (l.nivel === 'AVISO' ? 'log-aviso' : '')}">
-                [${l.data}] [${l.nivel}] ${l.user}: ${l.acao}
-            </div>`).join('');
+            const logsRaw = localStorage.getItem('mf_logs_auditoria');
+            const logs = logsRaw ? JSON.parse(logsRaw) : [];
+            document.getElementById('container-logs').innerHTML = logs.map(l => `
+                <div class="log-line ${l.nivel === 'CRÍTICO' ? 'log-critico' : (l.nivel === 'AVISO' ? 'log-aviso' : '')}">
+                    [${l.data}] [${l.nivel}] ${l.user}: ${l.acao}
+                </div>`).join('');
 
-        renderPedidos();
-        const s = localStorage.getItem('mf_lockdown') === 'true';
-        document.getElementById('lockBtn').innerText = s ? "DESTRAVAR REDE" : "LOCKDOWN GLOBAL";
-        document.getElementById('lockBtn').style.borderColor = s ? "#80ff44" : "#ff4444";
-        document.getElementById('lockBtn').style.color = s ? "#80ff44" : "#ff4444";
-    }, 1500);
+            renderPedidos();
+            
+            const lock = localStorage.getItem('mf_lockdown') === 'true';
+            const lb = document.getElementById('lockBtn');
+            lb.innerText = lock ? "DESTRAVAR REDE" : "LOCKDOWN GLOBAL";
+            lb.style.borderColor = lock ? "#80ff44" : "#ff4444";
+            lb.style.color = lock ? "#80ff44" : "#ff4444";
+        } catch(e) { console.error("Erro Loop:", e); }
+    }, 2000);
 
     document.getElementById('master-pix').value = localStorage.getItem('mf_pix') || '';
 </script>
