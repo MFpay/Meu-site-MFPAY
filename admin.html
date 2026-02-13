@@ -2,63 +2,33 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MF | Admin</title>
+    <title>MF | Radar Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>.tab { display: none; } .tab.active { display: block; }</style>
 </head>
-<body class="bg-black text-white p-6 md:p-16">
-    <header class="flex justify-between items-end mb-16">
-        <div><h1 class="text-6xl font-black italic text-[#80ff44]">MASTER</h1><p class="text-[10px] opacity-20 uppercase font-black tracking-widest">Sovereign Control</p></div>
-        <nav class="flex gap-6 text-[10px] font-black uppercase opacity-40">
-            <button onclick="tab('f')">Fluxo</button>
-            <button onclick="tab('a')">Atividade</button>
-            <button onclick="tab('s')">Sistema</button>
-        </nav>
+<body class="bg-black text-white p-8 md:p-16">
+    <header class="mb-16">
+        <h1 class="text-6xl font-black italic text-[#80ff44]">RADAR</h1>
+        <p class="text-[10px] opacity-20 uppercase font-black tracking-widest mt-2">Sovereign Control</p>
     </header>
-
-    <section id="f" class="tab active space-y-8">
-        <div class="bg-[#0a0a0a] p-12 rounded-[50px] border-l-4 border-[#80ff44] shadow-2xl">
-            <p class="text-[10px] opacity-30 font-black mb-2 uppercase">Volume Global</p>
-            <h2 id="fat" class="text-6xl font-black italic tracking-tighter">R$ 0,00</h2>
-        </div>
-        <div id="lista" class="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
-    </section>
-
-    <section id="a" class="tab">
-        <div id="logs" class="bg-[#050505] p-10 rounded-[40px] border border-white/5 font-mono text-[10px] opacity-40 space-y-2"></div>
-    </section>
-
-    <section id="s" class="tab max-w-xl">
-        <div class="bg-[#0a0a0a] p-10 rounded-[40px] border border-white/5 space-y-6">
-            <input type="text" id="ne" placeholder="Novo Email Master" class="w-full bg-black border border-white/5 p-4 rounded-xl text-xs outline-none focus:border-[#80ff44]">
-            <input type="password" id="np" placeholder="Nova Senha Master" class="w-full bg-black border border-white/5 p-4 rounded-xl text-xs outline-none focus:border-[#80ff44]">
-            <button onclick="save()" class="w-full bg-white text-black py-4 rounded-2xl font-black text-[10px] uppercase">Atualizar Acesso</button>
-        </div>
-    </section>
-
+    <div id="lista" class="grid grid-cols-1 lg:grid-cols-2 gap-8"></div>
     <script>
         const API = 'https://sheetdb.io/api/v1/n1iq28pv28d009pq';
-        function tab(id) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-        
         async function load() {
-            const r = await fetch(API), d = await r.json();
-            document.getElementById('fat').innerText = `R$ ${d.filter(i => i.status==='Aprovado' && i.tipo==='DEPOSITO').reduce((a,b)=>a+parseFloat(b.valor||0),0).toLocaleString('pt-BR')}`;
-            document.getElementById('logs').innerHTML = d.filter(i => i.tipo==='CADASTRO' || i.tipo==='LOG').reverse().slice(0,10).map(l => `<p>[${l.merchant}] ${l.data_hora}</p>`).join('');
-            
+            const res = await fetch(API); const d = await res.json();
             const fl = d.filter(i => i.status === 'Pendente');
             document.getElementById('lista').innerHTML = fl.map(p => `
-                <div class="bg-[#0a0a0a] p-8 rounded-[40px] border border-white/5 flex justify-between items-center">
-                    <div><p class="text-[9px] font-black text-[#80ff44] uppercase">${p.merchant}</p><h3 class="text-2xl font-black italic">R$ ${p.valor}</h3></div>
+                <div class="bg-[#0a0a0a] p-10 rounded-[45px] border border-white/5 flex justify-between items-center">
+                    <div><p class="text-[9px] font-black text-[#80ff44] uppercase">${p.merchant} | ${p.tipo}</p><h3 class="text-3xl font-black italic">R$ ${p.valor}</h3></div>
                     <div class="flex gap-2">
-                        <button onclick="possess('${p.merchant}')" class="bg-zinc-800 text-[8px] px-4 py-3 rounded-xl font-black uppercase">Entrar</button>
-                        <button onclick="ok('${p.id}')" class="bg-white text-black text-[8px] px-6 py-3 rounded-xl font-black uppercase">Validar</button>
+                        <button onclick="possess('${p.merchant}')" class="bg-zinc-800 text-[8px] px-6 py-4 rounded-xl font-black uppercase">Entrar</button>
+                        <button onclick="ok('${p.id}')" class="bg-white text-black text-[8px] px-8 py-4 rounded-xl font-black uppercase">Validar</button>
                     </div>
                 </div>
             `).join('');
         }
         function possess(m) { sessionStorage.setItem('mf_a', btoa('user')); sessionStorage.setItem('mf_u', m); window.open('painel.html', '_blank'); }
         async function ok(id) { await fetch(`${API}/id/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({data:{status:'Aprovado'}})}); load(); }
-        setInterval(load, 8000); load();
+        load();
     </script>
 </body>
 </html>
