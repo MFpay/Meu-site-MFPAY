@@ -2,164 +2,121 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>MF PAY | MASTER CONTROL CENTER</title>
+    <title>MF PAY | MASTER CONTROL</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; }
-        .sidebar { background: #080808; height: 100vh; position: fixed; width: 280px; border-right: 1px solid #111; z-index: 100; }
+        .sidebar { background: #080808; height: 100vh; position: fixed; width: 280px; border-right: 1px solid #111; }
         .main-content { margin-left: 280px; padding: 40px; }
-        .admin-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 20px; transition: 0.3s; }
+        .admin-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 20px; }
         .nav-btn { width: 100%; text-align: left; padding: 18px 30px; font-size: 11px; font-weight: 900; color: #333; text-transform: uppercase; italic; border-right: 4px solid transparent; }
         .nav-btn.active { color: #80ff44; border-right-color: #80ff44; background: linear-gradient(90deg, transparent, rgba(128,255,68,0.02)); }
-        .stat-card { background: linear-gradient(145deg, #0f0f0f, #080808); border: 1px solid #1a1a1a; border-radius: 16px; padding: 25px; }
-        .tab-content { display: none; animation: fadeIn 0.4s ease; }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
     <aside class="sidebar py-10 flex flex-col justify-between">
-        <div>
-            <div class="px-10 mb-12">
-                <h1 class="text-xl font-black italic text-[#80ff44] uppercase tracking-tighter">MF PAY <span class="text-white">MASTER</span></h1>
-            </div>
-            <nav class="space-y-1">
-                <button onclick="openTab(event, 'visao')" class="nav-btn active">Visão Global</button>
-                <button onclick="openTab(event, 'fila')" class="nav-btn">Fila de Operações</button>
-                <button onclick="openTab(event, 'usuarios')" class="nav-btn">Gerenciar Merchants</button>
-                <button onclick="openTab(event, 'config')" class="nav-btn">Ajustes Master</button>
-            </nav>
-        </div>
-        <div class="px-8 space-y-4">
-            <button onclick="toggleLockdown()" id="lockBtn" class="w-full py-4 rounded-xl font-black text-[10px] uppercase italic transition-all shadow-xl"></button>
-        </div>
+        <div class="px-10 mb-12"><h1 class="text-xl font-black italic text-[#80ff44] uppercase">MF PAY MASTER</h1></div>
+        <nav class="space-y-1">
+            <button onclick="tab('fila')" id="btn-fila" class="nav-btn active">Fila Ativa</button>
+            <button onclick="tab('merchants')" id="btn-mer" class="nav-btn">Merchants</button>
+            <button onclick="tab('config')" id="btn-cfg" class="nav-btn">Ajustes Master</button>
+        </nav>
+        <div class="px-8"><button onclick="toggleLockdown()" id="lockBtn" class="w-full py-4 rounded-xl font-black text-[10px] uppercase italic"></button></div>
     </aside>
 
     <main class="main-content">
-        
-        <div id="visao" class="tab-content active space-y-8">
-            <h2 class="text-4xl font-black italic uppercase">Dashboard Master</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="stat-card">
-                    <p class="text-[10px] font-black text-gray-600 uppercase mb-2 italic">Volume Total na Rede</p>
-                    <h3 id="stat-total" class="text-3xl font-black italic text-[#80ff44]">R$ 0,00</h3>
-                </div>
-                <div class="stat-card">
-                    <p class="text-[10px] font-black text-gray-600 uppercase mb-2 italic">Lucro Estimado (Taxas)</p>
-                    <h3 id="stat-lucro" class="text-3xl font-black italic text-blue-500">R$ 0,00</h3>
-                </div>
-                <div class="stat-card">
-                    <p class="text-[10px] font-black text-gray-600 uppercase mb-2 italic">Operações Hoje</p>
-                    <h3 id="stat-ops" class="text-3xl font-black italic text-white">0</h3>
-                </div>
+        <div id="fila" class="tab-sec">
+            <div class="flex justify-between items-end mb-8">
+                <h2 class="text-4xl font-black italic uppercase italic">Fila de Operações</h2>
+                <h3 id="vol-esp" class="text-2xl font-black text-[#80ff44]">R$ 0,00</h3>
             </div>
-            
-            <div class="admin-card p-10 border-l-4 border-l-[#80ff44]">
-                <h4 class="text-xs font-black uppercase text-gray-500 mb-6 tracking-widest italic">Aviso do Sistema</h4>
-                <p class="text-sm text-gray-400 font-medium italic">O Gateway está operando em alta performance. Monitore a fila de saques para garantir a liquidez dos merchants.</p>
-            </div>
-        </div>
-
-        <div id="fila" class="tab-content space-y-6">
-            <h2 class="text-4xl font-black italic uppercase">Fila de Espera</h2>
             <div class="admin-card overflow-hidden">
                 <table class="w-full text-left text-xs">
                     <thead class="bg-black/60 font-black uppercase text-gray-700">
-                        <tr>
-                            <th class="p-8">Merchant</th>
-                            <th class="p-8">Tipo</th>
-                            <th class="p-8">Valor</th>
-                            <th class="p-8">Prova/Chave</th>
-                            <th class="p-8 text-right">Ação</th>
-                        </tr>
+                        <tr><th class="p-8">Merchant</th><th class="p-8">Tipo</th><th class="p-8">Valor</th><th class="p-8">Prova</th><th class="p-8 text-right">Ação</th></tr>
                     </thead>
-                    <tbody id="lista-pedidos" class="font-bold"></tbody>
+                    <tbody id="lista-pedidos" class="font-bold italic"></tbody>
                 </table>
             </div>
         </div>
 
-        <div id="usuarios" class="tab-content space-y-6">
-            <h2 class="text-4xl font-black italic uppercase">Merchants Ativos</h2>
+        <div id="merchants" class="tab-sec hidden">
+            <h2 class="text-4xl font-black italic uppercase mb-8">Merchants Ativos</h2>
             <div class="admin-card overflow-hidden">
                 <table class="w-full text-left text-xs">
                     <thead class="bg-black/60 font-black uppercase text-gray-700">
-                        <tr>
-                            <th class="p-8">ID do Merchant</th>
-                            <th class="p-8">Saldo em Custódia</th>
-                            <th class="p-8 text-right">Ações Rápidas</th>
-                        </tr>
+                        <tr><th class="p-8">ID Merchant</th><th class="p-8">Saldo Atual</th><th class="p-8 text-right">Gestão</th></tr>
                     </thead>
-                    <tbody id="lista-usuarios"></tbody>
+                    <tbody id="lista-merchants"></tbody>
                 </table>
             </div>
         </div>
 
-        <div id="config" class="tab-content space-y-6">
-            <h2 class="text-4xl font-black italic uppercase">Ajustes Master</h2>
-            <div class="admin-card p-12 max-w-xl">
-                <label class="text-[10px] font-black text-gray-700 uppercase italic mb-4 block">Chave Pix Recebimento Global</label>
-                <input type="text" id="master-pix-input" placeholder="Chave Master" class="w-full bg-black border border-white/5 p-5 rounded-xl text-white mb-6 font-bold outline-none focus:border-[#80ff44]">
-                <button onclick="salvarPix()" class="w-full bg-[#80ff44] text-black font-black py-5 rounded-xl uppercase italic shadow-lg">Atualizar Chave Master</button>
+        <div id="config" class="tab-sec hidden">
+            <h2 class="text-4xl font-black italic uppercase mb-8">Config Master</h2>
+            <div class="admin-card p-10 max-w-xl">
+                <label class="text-[10px] font-black text-gray-600 mb-4 block">Chave Pix Recebimento</label>
+                <input type="text" id="master-pix" class="w-full bg-black border border-white/5 p-4 rounded-xl mb-6">
+                <button onclick="localStorage.setItem('mf_pix', document.getElementById('master-pix').value); alert('Salvo!')" class="w-full bg-[#80ff44] text-black font-black py-4 rounded-xl italic uppercase">Atualizar</button>
             </div>
         </div>
     </main>
 
-    <audio id="audio-cash" src="https://www.myinstants.com/media/sounds/cash-register-purchase.mp3"></audio>
+    <audio id="snd" src="https://www.myinstants.com/media/sounds/cash-register-purchase.mp3"></audio>
 
 <script>
-    let ultimoPedId = null;
+    let ultimoId = null;
 
-    function openTab(evt, t) {
-        const tabs = document.getElementsByClassName("tab-content");
-        for (let i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
-        const btns = document.getElementsByClassName("nav-btn");
-        for (let i = 0; i < btns.length; i++) btns[i].classList.remove('active');
-        document.getElementById(t).classList.add('active');
-        evt.currentTarget.classList.add('active');
-        if(t === 'usuarios') renderUsuarios();
-        if(t === 'visao') updateStats();
+    function tab(t) {
+        document.querySelectorAll('.tab-sec').forEach(x => x.classList.add('hidden'));
+        document.getElementById(t).classList.remove('hidden');
+        document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
+        document.getElementById('btn-'+t.substring(0,3)).classList.add('active');
+        if(t === 'merchants') renderMerchants();
     }
 
-    function updateStats() {
-        // Simulação de cálculo de métricas baseado no storage
-        let totalRede = 0;
-        // Percorre o storage procurando por saldos de merchants (bal_)
-        for(let i=0; i<localStorage.length; i++) {
-            let key = localStorage.key(i);
-            if(key.startsWith('bal_')) totalRede += parseFloat(localStorage.getItem(key));
+    function decidir(acao) {
+        const ped = JSON.parse(localStorage.getItem('mf_ped'));
+        const hist = JSON.parse(localStorage.getItem('hist_'+ped.user) || '[]');
+        hist[hist.length-1].status = acao === 'APR' ? 'Aprovado' : 'Recusado';
+        localStorage.setItem('hist_'+ped.user, JSON.stringify(hist));
+
+        if(acao === 'APR') {
+            const cur = parseFloat(localStorage.getItem('bal_'+ped.user) || 0);
+            const val = parseFloat(ped.valor);
+            localStorage.setItem('bal_'+ped.user, (ped.tipo === 'DEP' ? cur + val : cur - val).toFixed(2));
         }
-        document.getElementById('stat-total').innerText = `R$ ${totalRede.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-        document.getElementById('stat-lucro').innerText = `R$ ${(totalRede * 0.05).toLocaleString('pt-BR', {minimumFractionDigits:2})}`; // 5% médio
-        document.getElementById('stat-ops').innerText = localStorage.getItem('mf_ped') ? '1' : '0';
+        localStorage.removeItem('mf_ped');
+        renderPedidos();
     }
 
-    function renderUsuarios() {
-        const lista = document.getElementById('lista-usuarios');
-        lista.innerHTML = '';
+    function renderPedidos() {
+        const ped = JSON.parse(localStorage.getItem('mf_ped'));
+        const l = document.getElementById('lista-pedidos');
+        if(!ped) { l.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-gray-800">FILA LIMPA</td></tr>'; return; }
+        
+        if(ped.timestamp !== ultimoId) { document.getElementById('snd').play(); ultimoId = ped.timestamp; }
+        
+        l.innerHTML = `<tr>
+            <td class="p-8">${ped.user}</td>
+            <td class="p-8 uppercase">${ped.tipo}</td>
+            <td class="p-8 text-[#80ff44]">R$ ${parseFloat(ped.valor).toLocaleString('pt-BR')}</td>
+            <td class="p-8">${ped.tipo === 'DEP' ? `<a href="${ped.comprovante}" target="_blank" class="text-blue-500 underline">VER PROVA</a>` : 'PIN OK'}</td>
+            <td class="p-8 text-right">
+                <button onclick="decidir('APR')" class="bg-[#80ff44] text-black px-4 py-2 rounded font-black">APROVAR</button>
+            </td>
+        </tr>`;
+    }
+
+    function renderMerchants() {
+        const l = document.getElementById('lista-merchants'); l.innerHTML = '';
         for(let i=0; i<localStorage.length; i++) {
-            let key = localStorage.key(i);
-            if(key.startsWith('bal_')) {
-                let user = key.replace('bal_', '');
-                let saldo = parseFloat(localStorage.getItem(key));
-                lista.innerHTML += `<tr class="border-t border-white/5 hover:bg-white/[0.01]">
-                    <td class="p-8 font-black italic uppercase">${user}</td>
-                    <td class="p-8 text-[#80ff44] font-black italic">R$ ${saldo.toLocaleString('pt-BR')}</td>
-                    <td class="p-8 text-right">
-                        <button onclick="ajustarSaldo('${user}')" class="text-[9px] font-black uppercase text-blue-400">Ajustar</button>
-                    </td>
-                </tr>`;
+            let k = localStorage.key(i);
+            if(k.startsWith('bal_')) {
+                let u = k.replace('bal_','');
+                l.innerHTML += `<tr class="border-t border-white/5"><td class="p-8">${u}</td><td class="p-8 text-[#80ff44]">R$ ${localStorage.getItem(k)}</td><td class="p-8 text-right"><button onclick="let n=prompt('Novo Saldo:');localStorage.setItem('${k}',n);renderMerchants()" class="text-blue-400">AJUSTAR</button></td></tr>`;
             }
-        }
-    }
-
-    function ajustarSaldo(u) {
-        let n = prompt("Novo saldo para " + u + ":");
-        if(n !== null) {
-            localStorage.setItem('bal_'+u, n);
-            renderUsuarios();
-            updateStats();
         }
     }
 
@@ -168,76 +125,15 @@
         localStorage.setItem('mf_lockdown', !s);
     }
 
-    function decidir(acao) {
-        const ped = JSON.parse(localStorage.getItem('mf_ped'));
-        if(!ped) return;
-
-        const hist = JSON.parse(localStorage.getItem('hist_' + ped.user) || '[]');
-        if (hist.length > 0) {
-            hist[hist.length - 1].status = (acao === 'APR') ? 'Aprovado' : 'Recusado';
-            localStorage.setItem('hist_' + ped.user, JSON.stringify(hist));
-        }
-
-        if (acao === 'APR') {
-            const current = parseFloat(localStorage.getItem('bal_'+ped.user) || 0);
-            const val = parseFloat(ped.valor);
-            localStorage.setItem('bal_'+ped.user, (ped.tipo === 'DEP' ? current + val : current - val).toFixed(2));
-            document.getElementById('audio-cash').play();
-        }
-
-        localStorage.removeItem('mf_ped');
-        renderPedidos();
-        updateStats();
-        alert("SISTEMA ATUALIZADO!");
-    }
-
-    function renderPedidos() {
-        const lista = document.getElementById('lista-pedidos');
-        const ped = JSON.parse(localStorage.getItem('mf_ped'));
-        
-        if(!ped) {
-            lista.innerHTML = '<tr><td colspan="5" class="p-20 text-center font-black text-gray-900 uppercase italic tracking-widest">Aguardando sinais...</td></tr>';
-            document.getElementById('vol-esp').innerText = 'R$ 0,00';
-            return;
-        }
-
-        if(ped.timestamp !== ultimoPedId) {
-            document.getElementById('audio-cash').play();
-            ultimoPedId = ped.timestamp;
-        }
-
-        document.getElementById('vol-esp').innerText = `R$ ${parseFloat(ped.valor).toLocaleString('pt-BR')}`;
-        lista.innerHTML = `<tr class="border-t border-white/5">
-            <td class="p-8 italic uppercase">${ped.user}</td>
-            <td class="p-8 uppercase text-[10px] text-gray-500">${ped.tipo === 'DEP' ? 'ENTRADA' : 'SAÍDA'}</td>
-            <td class="p-8 text-[#80ff44] text-xl italic font-black">R$ ${parseFloat(ped.valor).toLocaleString('pt-BR')}</td>
-            <td class="p-8">${ped.tipo === 'DEP' ? `<a href="${ped.comprovante}" target="_blank" class="text-blue-500 underline text-[9px] font-black italic">VER PROVA</a>` : `<span class="text-white">${ped.cli_pix}</span>`}</td>
-            <td class="p-8 text-right space-x-3">
-                <button onclick="decidir('REC')" class="text-red-500 text-[9px] uppercase font-black italic">Negar</button>
-                <button onclick="decidir('APR')" class="bg-[#80ff44] text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase italic shadow-lg">Aprovar</button>
-            </td>
-        </tr>`;
-    }
-
-    function salvarPix() {
-        localStorage.setItem('mf_pix', document.getElementById('master-pix-input').value);
-        alert("CHAVE ATUALIZADA!");
-    }
-
     setInterval(() => {
         const s = localStorage.getItem('mf_lockdown') === 'true';
         const b = document.getElementById('lockBtn');
-        if(b) {
-            b.innerText = s ? "DESTRAVAR GATEWAY" : "LOCKDOWN GLOBAL";
-            b.style.background = s ? "#ef4444" : "#111";
-            b.style.color = s ? "#fff" : "#ef4444";
-        }
+        b.innerText = s ? "DESTRAVAR" : "LOCKDOWN";
+        b.style.background = s ? "#ef4444" : "#111";
+        b.style.color = s ? "#fff" : "#ef4444";
         renderPedidos();
     }, 1500);
-
-    updateStats();
-    document.getElementById('master-pix-input').value = localStorage.getItem('mf_pix') || '';
+    document.getElementById('master-pix').value = localStorage.getItem('mf_pix') || '';
 </script>
 </body>
 </html>
-
