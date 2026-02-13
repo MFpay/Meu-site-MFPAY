@@ -1,36 +1,41 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MFpay | Gateway Soberano</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.onkeydown = e => { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) return false; }
+        if(localStorage.getItem('mf_panico') === 'true') document.body.innerHTML = "";
+    </script>
 </head>
-<body class="bg-black text-white flex items-center justify-center min-h-screen p-6">
-    <div class="bg-[#0a0a0a] p-12 rounded-[50px] border border-white/5 w-full max-w-md shadow-2xl text-center">
-        <h1 id="display-name" class="text-5xl font-black italic mb-10">MF<span class="text-white">PAY</span></h1>
+<body class="bg-black text-white flex items-center justify-center min-h-screen">
+    <div class="bg-[#0a0a0a] p-12 rounded-[50px] border border-white/5 w-full max-w-md text-center shadow-2xl">
+        <h1 id="wl-logo" class="text-5xl font-black italic mb-10 text-[#80ff44]">MFPAY</h1>
         <div class="space-y-4">
             <input type="email" id="email" placeholder="IDENTIDADE" class="w-full bg-black border border-white/10 p-5 rounded-2xl outline-none font-bold focus:border-[#80ff44]">
             <input type="password" id="pass" placeholder="CHAVE MESTRA" class="w-full bg-black border border-white/10 p-5 rounded-2xl outline-none font-bold focus:border-[#80ff44]">
-            <button onclick="entrar()" id="btn-entrar" class="w-full bg-[#80ff44] text-black py-6 rounded-3xl font-black uppercase italic hover:scale-105 transition-all">Aceder ao Trono</button>
+            <button onclick="logar()" id="btn" class="w-full bg-[#80ff44] text-black py-6 rounded-3xl font-black uppercase italic hover:scale-105 transition-all">Acessar Sistema</button>
         </div>
     </div>
     <script>
         const wl = JSON.parse(localStorage.getItem('mf_white_label') || '{"nome":"MFpay","cor":"#80ff44"}');
-        document.getElementById('display-name').style.color = wl.cor;
-        document.getElementById('btn-entrar').style.backgroundColor = wl.cor;
+        document.getElementById('wl-logo').innerText = wl.nome.toUpperCase();
+        document.getElementById('wl-logo').style.color = wl.cor;
+        document.getElementById('btn').style.backgroundColor = wl.cor;
 
-        function entrar() {
+        function logar() {
             const e = document.getElementById('email').value;
             const p = document.getElementById('pass').value;
             if(e === 'admin@mf.com' && p === 'master77') {
-                sessionStorage.setItem('auth_token', btoa('master_soberano_' + Date.now()));
+                sessionStorage.setItem('mf_auth', btoa('master'));
                 window.location.href = 'admin.html';
             } else if(e !== '' && p !== '') {
-                sessionStorage.setItem('auth_token', btoa('cliente_ativo_' + Date.now()));
-                sessionStorage.setItem('user_mf', 'Nando'); 
+                sessionStorage.setItem('mf_auth', btoa('user'));
+                sessionStorage.setItem('mf_user', 'Nando');
                 window.location.href = 'painel.html';
-            } else { alert("ACESSO NEGADO."); }
+            }
         }
     </script>
 </body>
