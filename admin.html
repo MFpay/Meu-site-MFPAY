@@ -2,14 +2,14 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>MF PAY | MASTER CONTROL</title>
+    <title>MF PAY | MASTER COMMAND</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; }
         .sidebar { background: #080808; height: 100vh; position: fixed; width: 280px; border-right: 1px solid #111; }
         .main-content { margin-left: 280px; padding: 40px; }
         .admin-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 20px; }
-        .nav-btn { width: 100%; text-align: left; padding: 18px 30px; font-size: 11px; font-weight: 900; color: #333; text-transform: uppercase; italic; border-right: 4px solid transparent; }
+        .nav-btn { width: 100%; text-align: left; padding: 18px 30px; font-size: 11px; font-weight: 900; color: #333; text-transform: uppercase; border-right: 4px solid transparent; italic; }
         .nav-btn.active { color: #80ff44; border-right-color: #80ff44; background: linear-gradient(90deg, transparent, rgba(128,255,68,0.02)); }
     </style>
 </head>
@@ -18,8 +18,7 @@
     <aside class="sidebar py-10 flex flex-col justify-between">
         <div class="px-10 mb-12"><h1 class="text-xl font-black italic text-[#80ff44] uppercase">MF PAY MASTER</h1></div>
         <nav class="space-y-1">
-            <button onclick="tab('fila')" id="btn-fila" class="nav-btn active">Fila Ativa</button>
-            <button onclick="tab('merchants')" id="btn-mer" class="nav-btn">Merchants</button>
+            <button onclick="tab('fila')" id="btn-fila" class="nav-btn active">Controle Global</button>
             <button onclick="tab('config')" id="btn-cfg" class="nav-btn">Ajustes Master</button>
         </nav>
         <div class="px-8"><button onclick="toggleLockdown()" id="lockBtn" class="w-full py-4 rounded-xl font-black text-[10px] uppercase italic"></button></div>
@@ -27,39 +26,29 @@
 
     <main class="main-content">
         <div id="fila" class="tab-sec">
-            <div class="flex justify-between items-end mb-8">
-                <h2 class="text-4xl font-black italic uppercase italic">Fila de Operações</h2>
-                <h3 id="vol-esp" class="text-2xl font-black text-[#80ff44]">R$ 0,00</h3>
+            <div class="grid grid-cols-3 gap-6 mb-12">
+                <div class="admin-card p-8 text-center border-b-2 border-[#80ff44]">
+                    <p class="text-[10px] text-gray-600 font-black uppercase">Pessoas Online Agora</p>
+                    <h3 id="stat-online" class="text-5xl font-black italic text-[#80ff44]">0</h3>
+                </div>
+                <div class="admin-card p-8 text-center border-b-2 border-blue-500">
+                    <p class="text-[10px] text-gray-600 font-black uppercase">Volume Pendente</p>
+                    <h3 id="vol-esp" class="text-4xl font-black italic text-blue-500">R$ 0,00</h3>
+                </div>
+                <div class="admin-card p-8 text-center border-b-2 border-white/10">
+                    <p class="text-[10px] text-gray-600 font-black uppercase">Total na Rede</p>
+                    <h3 id="stat-total" class="text-4xl font-black italic">R$ 0,00</h3>
+                </div>
             </div>
             <div class="admin-card overflow-hidden">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-black/60 font-black uppercase text-gray-700">
-                        <tr><th class="p-8">Merchant</th><th class="p-8">Tipo</th><th class="p-8">Valor</th><th class="p-8">Prova</th><th class="p-8 text-right">Ação</th></tr>
-                    </thead>
-                    <tbody id="lista-pedidos" class="font-bold italic"></tbody>
-                </table>
+                <table class="w-full text-left text-xs"><tbody id="lista-pedidos"></tbody></table>
             </div>
         </div>
 
-        <div id="merchants" class="tab-sec hidden">
-            <h2 class="text-4xl font-black italic uppercase mb-8">Merchants Ativos</h2>
-            <div class="admin-card overflow-hidden">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-black/60 font-black uppercase text-gray-700">
-                        <tr><th class="p-8">ID Merchant</th><th class="p-8">Saldo Atual</th><th class="p-8 text-right">Gestão</th></tr>
-                    </thead>
-                    <tbody id="lista-merchants"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="config" class="tab-sec hidden">
-            <h2 class="text-4xl font-black italic uppercase mb-8">Config Master</h2>
-            <div class="admin-card p-10 max-w-xl">
-                <label class="text-[10px] font-black text-gray-600 mb-4 block">Chave Pix Recebimento</label>
-                <input type="text" id="master-pix" class="w-full bg-black border border-white/5 p-4 rounded-xl mb-6">
-                <button onclick="localStorage.setItem('mf_pix', document.getElementById('master-pix').value); alert('Salvo!')" class="w-full bg-[#80ff44] text-black font-black py-4 rounded-xl italic uppercase">Atualizar</button>
-            </div>
+        <div id="config" class="tab-sec hidden p-10">
+            <h2 class="text-3xl font-black italic mb-6">CHAVE PIX GLOBAL</h2>
+            <input type="text" id="master-pix" class="bg-black border border-white/10 p-5 rounded-xl w-full text-white mb-6">
+            <button onclick="localStorage.setItem('mf_pix', document.getElementById('master-pix').value); alert('Chave Salva!')" class="w-full bg-[#80ff44] text-black font-black py-4 rounded-xl uppercase italic">Atualizar Recebimento</button>
         </div>
     </main>
 
@@ -71,69 +60,44 @@
     function tab(t) {
         document.querySelectorAll('.tab-sec').forEach(x => x.classList.add('hidden'));
         document.getElementById(t).classList.remove('hidden');
-        document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
-        document.getElementById('btn-'+t.substring(0,3)).classList.add('active');
-        if(t === 'merchants') renderMerchants();
-    }
-
-    function decidir(acao) {
-        const ped = JSON.parse(localStorage.getItem('mf_ped'));
-        const hist = JSON.parse(localStorage.getItem('hist_'+ped.user) || '[]');
-        hist[hist.length-1].status = acao === 'APR' ? 'Aprovado' : 'Recusado';
-        localStorage.setItem('hist_'+ped.user, JSON.stringify(hist));
-
-        if(acao === 'APR') {
-            const cur = parseFloat(localStorage.getItem('bal_'+ped.user) || 0);
-            const val = parseFloat(ped.valor);
-            localStorage.setItem('bal_'+ped.user, (ped.tipo === 'DEP' ? cur + val : cur - val).toFixed(2));
-        }
-        localStorage.removeItem('mf_ped');
-        renderPedidos();
     }
 
     function renderPedidos() {
         const ped = JSON.parse(localStorage.getItem('mf_ped'));
         const l = document.getElementById('lista-pedidos');
-        if(!ped) { l.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-gray-800">FILA LIMPA</td></tr>'; return; }
-        
-        if(ped.timestamp !== ultimoId) { document.getElementById('snd').play(); ultimoId = ped.timestamp; }
-        
-        l.innerHTML = `<tr>
-            <td class="p-8">${ped.user}</td>
-            <td class="p-8 uppercase">${ped.tipo}</td>
-            <td class="p-8 text-[#80ff44]">R$ ${parseFloat(ped.valor).toLocaleString('pt-BR')}</td>
-            <td class="p-8">${ped.tipo === 'DEP' ? `<a href="${ped.comprovante}" target="_blank" class="text-blue-500 underline">VER PROVA</a>` : 'PIN OK'}</td>
-            <td class="p-8 text-right">
-                <button onclick="decidir('APR')" class="bg-[#80ff44] text-black px-4 py-2 rounded font-black">APROVAR</button>
-            </td>
-        </tr>`;
-    }
-
-    function renderMerchants() {
-        const l = document.getElementById('lista-merchants'); l.innerHTML = '';
-        for(let i=0; i<localStorage.length; i++) {
-            let k = localStorage.key(i);
-            if(k.startsWith('bal_')) {
-                let u = k.replace('bal_','');
-                l.innerHTML += `<tr class="border-t border-white/5"><td class="p-8">${u}</td><td class="p-8 text-[#80ff44]">R$ ${localStorage.getItem(k)}</td><td class="p-8 text-right"><button onclick="let n=prompt('Novo Saldo:');localStorage.setItem('${k}',n);renderMerchants()" class="text-blue-400">AJUSTAR</button></td></tr>`;
-            }
+        if(!ped) { 
+            l.innerHTML = '<tr><td class="p-20 text-center text-gray-800 font-black uppercase italic">Sem atividades pendentes</td></tr>'; 
+            document.getElementById('vol-esp').innerText = 'R$ 0,00';
+            return; 
         }
+        if(ped.timestamp !== ultimoId) { document.getElementById('snd').play(); ultimoId = ped.timestamp; }
+        document.getElementById('vol-esp').innerText = `R$ ${parseFloat(ped.valor).toLocaleString('pt-BR')}`;
+        l.innerHTML = `<tr class="border-t border-white/5"><td class="p-8 font-black uppercase italic">${ped.user}</td><td class="p-8">${ped.tipo}</td><td class="p-8 text-[#80ff44] font-black text-xl">R$ ${ped.valor}</td><td class="p-8 text-right"><button onclick="decidir('APR')" class="bg-[#80ff44] text-black px-8 py-3 rounded-xl font-black uppercase italic shadow-lg">Aprovar Agora</button></td></tr>`;
     }
 
-    function toggleLockdown() {
-        const s = localStorage.getItem('mf_lockdown') === 'true';
-        localStorage.setItem('mf_lockdown', !s);
+    function decidir(acao) {
+        const ped = JSON.parse(localStorage.getItem('mf_ped'));
+        const cur = parseFloat(localStorage.getItem('bal_'+ped.user) || 0);
+        localStorage.setItem('bal_'+ped.user, (cur + parseFloat(ped.valor)).toFixed(2));
+        localStorage.removeItem('mf_ped'); renderPedidos();
     }
 
     setInterval(() => {
+        let onlineCount = 0; let totalRede = 0; const agora = Date.now();
+        for(let i=0; i<localStorage.length; i++) {
+            let k = localStorage.key(i);
+            if(k.startsWith('online_') && (agora - parseInt(localStorage.getItem(k)) < 10000)) onlineCount++;
+            if(k.startsWith('bal_')) totalRede += parseFloat(localStorage.getItem(k));
+        }
+        document.getElementById('stat-online').innerText = onlineCount;
+        document.getElementById('stat-total').innerText = `R$ ${totalRede.toLocaleString('pt-BR')}`;
+        
         const s = localStorage.getItem('mf_lockdown') === 'true';
         const b = document.getElementById('lockBtn');
-        b.innerText = s ? "DESTRAVAR" : "LOCKDOWN";
+        b.innerText = s ? "DESTRAVAR REDE" : "LOCKDOWN GLOBAL";
         b.style.background = s ? "#ef4444" : "#111";
-        b.style.color = s ? "#fff" : "#ef4444";
         renderPedidos();
     }, 1500);
-    document.getElementById('master-pix').value = localStorage.getItem('mf_pix') || '';
 </script>
 </body>
 </html>
