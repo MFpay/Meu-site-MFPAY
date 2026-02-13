@@ -2,17 +2,19 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>MFpay | Merchant Console</title>
+    <title>MFpay | Console</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #000; color: #fff; font-family: 'Inter', sans-serif; font-size: 13px; margin:0; }
         .sidebar { background: #050505; border-right: 1px solid #111; height: 100vh; position: fixed; width: 220px; padding: 30px 20px; }
         .main { margin-left: 220px; padding: 40px; }
         .stat-card { background: #080808; border: 1px solid #111; padding: 25px; border-radius: 12px; }
-        .nav-link { color: #555; display: block; padding: 12px 0; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; }
+        .nav-link { color: #555; display: block; padding: 12px 0; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; cursor:pointer; }
         .nav-link.active { color: #80ff44; }
         .btn-pix { background: #80ff44; color: #000; font-weight: 800; padding: 12px 25px; border-radius: 6px; font-size: 11px; cursor:pointer; border:none; }
         .tab { display: none; } .tab.active { display: block; }
+        /* Botão de Manutenção Secreto */
+        #admin-tool { display: none; margin-top: 30px; border-top: 1px solid #111; pt-10; }
     </style>
 </head>
 <body>
@@ -20,47 +22,54 @@
     <div class="sidebar">
         <div class="mb-10 font-black italic text-[#80ff44] text-xl">MFPAY</div>
         <nav class="space-y-2">
-            <a href="#" onclick="show('home')" class="nav-link active">Visão Geral</a>
-            <a href="#" onclick="show('cashin')" class="nav-link">Gerar Cash-in</a>
-            <a href="#" onclick="logout()" class="nav-link text-red-900 mt-20">Logout</a>
+            <a onclick="show('home')" class="nav-link active">Visão Geral</a>
+            <a onclick="show('cashin')" class="nav-link">Gerar Cash-in</a>
+            
+            <div id="admin-tool">
+                <p class="text-[9px] text-gray-600 mb-4 font-bold">MASTER CONTROL</p>
+                <button id="mt-btn" onclick="toggleManutencao()" class="w-full py-3 rounded text-[10px] font-black uppercase transition border border-blue-900 text-blue-500">
+                    SISTEMA ONLINE
+                </button>
+            </div>
+
+            <a onclick="logout()" class="nav-link text-red-900 mt-20">Encerrar Sessão</a>
         </nav>
     </div>
 
     <div class="main">
         <div id="home" class="tab active">
-            <div class="flex justify-between items-end mb-10">
-                <div>
-                    <h2 class="text-2xl font-bold tracking-tight">Operações: <span id="client-id" class="text-[#80ff44]">---</span></h2>
-                    <p class="text-gray-500 text-xs">Sincronizado com MFpay Cloud Gateway.</p>
-                </div>
-                <button onclick="show('cashin')" class="btn-pix italic">+ NOVO RECEBIMENTO</button>
-            </div>
-
-            <div class="grid grid-cols-3 gap-6 mb-10">
+            <h2 class="text-2xl font-bold tracking-tight mb-8">Olá, <span id="client-id" class="text-[#80ff44]">---</span></h2>
+            <div class="grid grid-cols-2 gap-6">
                 <div class="stat-card border-l-4 border-[#80ff44]">
-                    <p class="text-gray-500 text-[10px] uppercase font-bold mb-1">Saldo Liquidável</p>
+                    <p class="text-gray-500 text-[10px] uppercase font-bold mb-1">Saldo em Nuvem</p>
                     <h3 id="saldo" class="text-3xl font-black">R$ 0,00</h3>
                 </div>
                 <div class="stat-card">
-                    <p class="text-gray-500 text-[10px] uppercase font-bold mb-1">Status do Gateway</p>
-                    <h3 class="text-3xl font-black text-[#80ff44] italic">ONLINE</h3>
+                    <p class="text-gray-500 text-[10px] uppercase font-bold mb-1">Status da Rede</p>
+                    <h3 id="net-status" class="text-3xl font-black italic text-[#80ff44]">ONLINE</h3>
                 </div>
             </div>
         </div>
 
         <div id="cashin" class="tab max-w-md mx-auto py-20 text-center">
-            <h2 class="text-2xl font-black mb-8 italic uppercase">Checkout API Generator</h2>
-            <input type="number" id="val-in" class="bg-transparent border border-[#111] p-4 w-full rounded-lg mb-4 text-center text-2xl font-bold text-[#80ff44]" placeholder="0.00">
-            <button onclick="triggerCheckout()" class="btn-pix w-full py-5">GERAR ENDPOINT PIX</button>
+            <h2 class="text-2xl font-black mb-8 italic uppercase text-[#80ff44]">Checkout Generator</h2>
+            <input type="number" id="val-in" class="bg-transparent border border-[#111] p-4 w-full rounded-lg mb-4 text-center text-2xl font-bold text-white" placeholder="0.00">
+            <button onclick="triggerCheckout()" class="btn-pix w-full py-5">GERAR LINK DE PAGAMENTO</button>
         </div>
     </div>
 
     <script>
         const API = "https://sheetdb.io/api/v1/n1iq28pv28d009pq";
         const user = localStorage.getItem('mf_user');
+        const EMAIL_MESTRE = "zndohot@gmail.com";
 
         if(!user) window.location.href = 'index.html';
         document.getElementById('client-id').innerText = user;
+
+        // SE FOR VOCÊ, MOSTRA O BOTÃO DE MANUTENÇÃO
+        if(user.toLowerCase() === EMAIL_MESTRE.toLowerCase()) {
+            document.getElementById('admin-tool').style.display = 'block';
+        }
 
         function show(id) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -68,44 +77,62 @@
         }
 
         async function load() {
-            // VERIFICA MANUTENÇÃO PELO EMAIL MESTRE
-            const m_res = await fetch(`${API}/search?merchant=zndohot@gmail.com&tipo=CONTROLE`);
+            // VERIFICA STATUS DO SISTEMA NA PLANILHA
+            const m_res = await fetch(`${API}/search?merchant=${EMAIL_MESTRE}&tipo=CONTROLE`);
             const m_data = await m_res.json();
-            if(m_data.length > 0 && m_data[0].status === 'MANUTENCAO') {
-                document.body.innerHTML = "<div style='background:#000; height:100vh; color:#111; display:flex; align-items:center; justify-content:center; font-weight:900; font-style:italic; font-size:40px;'>MFPAY_SYSTEM_OFFLINE</div>";
+            const isManutencao = m_data.length > 0 && m_data[0].status === 'MANUTENCAO';
+
+            // Bloqueia se não for você e estiver em manutenção
+            if(isManutencao && user.toLowerCase() !== EMAIL_MESTRE.toLowerCase()) {
+                document.body.innerHTML = "<div style='background:#000; height:100vh; color:#222; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:30px;'>MFPAY_SYSTEM_OFFLINE</div>";
                 return;
             }
 
-            // CARREGA SALDO
+            // Atualiza o botão no seu painel
+            const mtBtn = document.getElementById('mt-btn');
+            if(isManutencao) {
+                mtBtn.innerText = "MANUTENÇÃO ATIVA";
+                mtBtn.classList.replace('text-blue-500', 'text-red-500');
+                mtBtn.classList.replace('border-blue-900', 'border-red-900');
+                document.getElementById('net-status').innerText = "MANUTENÇÃO";
+                document.getElementById('net-status').style.color = "red";
+            }
+
+            // Carrega Saldo do Merchant
             const res = await fetch(`${API}/search?merchant=${user}&status=Aprovado`);
             const data = await res.json();
             let bal = 0;
-            data.forEach(i => {
-                if(i.tipo === 'DEPOSITO') bal += parseFloat(i.valor);
-                if(i.tipo === 'SAQUE') bal -= parseFloat(i.valor);
-            });
+            data.forEach(i => { if(i.tipo === 'DEPOSITO') bal += parseFloat(i.valor); if(i.tipo === 'SAQUE') bal -= parseFloat(i.valor); });
             document.getElementById('saldo').innerText = `R$ ${bal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        }
+
+        async function toggleManutencao() {
+            const btn = document.getElementById('mt-btn');
+            const novoStatus = btn.innerText.includes("ONLINE") ? "MANUTENCAO" : "ONLINE";
+            
+            // Atualiza na planilha o registro do seu email
+            await fetch(`${API}/merchant/${EMAIL_MESTRE}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ data: { status: novoStatus, tipo: 'CONTROLE' } })
+            });
+            location.reload();
         }
 
         async function triggerCheckout() {
             const v = document.getElementById('val-in').value;
             if(!v || v <= 0) return alert("Insira um valor.");
             const tid = "TID" + Date.now();
-            
             await fetch(API, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ data: [{ id: tid, merchant: user, tipo: 'DEPOSITO', valor: v, status: 'Pendente', data_hora: new Date().toLocaleString() }] })
             });
-            
-            // Redireciona para o checkout da Cakto
             window.location.href = `https://pay.cakto.com.br/checkout?client_id=L1rDTK0E0379elxfFSYvoTU5xQxBRBpZ5LA7KJZD&value=${v}&external_id=${tid}`;
         }
 
         function logout() { localStorage.clear(); window.location.href = 'index.html'; }
-
-        load(); 
-        setInterval(load, 10000);
+        load(); setInterval(load, 15000);
     </script>
 </body>
 </html>
