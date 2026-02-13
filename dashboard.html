@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MFpay | Elite Dashboard</title>
+    <title>MFpay | Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+        body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
         .sidebar { background: #0a0a0a; border-right: 1px solid #151515; height: 100vh; position: fixed; width: 260px; z-index: 50; }
-        .main-content { margin-left: 260px; padding: 40px; height: 100vh; overflow-y: auto; }
+        .main-content { margin-left: 260px; padding: 40px; min-height: 100vh; }
         .gateway-card { background: #0f0f0f; border-radius: 24px; border: 1px solid #1a1a1a; }
         .nav-btn { width: 100%; text-align: left; padding: 18px 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #444; border-left: 4px solid transparent; italic; }
         .nav-btn.active { color: #80ff44; background: #0f0f0f; border-left-color: #80ff44; }
         .progress-fill { background: #80ff44; height: 100%; transition: width 1.5s ease; }
-        input { background: #000 !important; border: 1px solid #1a1a1a !important; border-radius: 14px !important; color: #fff; padding: 18px; width: 100%; outline: none; }
+        input, select { background: #000 !important; border: 1px solid #1a1a1a !important; border-radius: 14px !important; color: #fff; padding: 18px; width: 100%; outline: none; appearance: none; }
         .tab-content { display: none; animation: fadeIn 0.4s ease; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -32,112 +31,140 @@
         <div>
             <div class="px-10 mb-16"><h1 class="font-black italic text-2xl uppercase tracking-tighter text-[#80ff44]">MFpay</h1></div>
             <nav>
-                <button onclick="openTab(event, 'dash')" class="nav-btn active">Visão Geral</button>
+                <button onclick="openTab(event, 'dash')" class="nav-btn active">Dashboard</button>
                 <button onclick="openTab(event, 'deposito')" class="nav-btn">Injetar Capital</button>
-                <button onclick="openTab(event, 'saque')" class="nav-btn">Liquidação</button>
-                <button onclick="openTab(event, 'seguranca')" class="nav-btn">Segurança Master</button>
+                <button onclick="openTab(event, 'saque')" class="nav-btn text-[#80ff44]">Sacar Agora</button>
+                <button onclick="openTab(event, 'seguranca')" class="nav-btn">Segurança</button>
             </nav>
         </div>
-        <div class="px-10 mb-6 text-center">
-            <span class="text-[8px] font-black text-[#80ff44] bg-[#80ff44]/10 px-3 py-1 rounded uppercase italic">Antifraude Ativo</span>
+        <div class="px-10 mb-6">
+            <div class="bg-[#80ff44]/5 p-4 rounded-xl border border-[#80ff44]/10 text-center">
+                <p id="tier-badge" class="text-[10px] font-black text-[#80ff44] uppercase italic">Soldado</p>
+                <p id="taxa-display" class="text-[8px] text-gray-500 uppercase font-bold italic">Taxa: 5%</p>
+            </div>
         </div>
     </aside>
 
     <main class="main-content">
         <div id="dash" class="tab-content active space-y-10">
-            <h2 class="text-4xl font-black italic uppercase italic">Dashboard</h2>
+            <div class="flex justify-between items-end">
+                <h2 class="text-4xl font-black italic uppercase italic">Painel MFpay</h2>
+                <span class="bg-blue-500/10 text-blue-400 text-[9px] font-black px-4 py-2 rounded-full border border-blue-500/20 uppercase italic">✔ Verificado</span>
+            </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="gateway-card p-12 lg:col-span-2 border-b-4 border-b-[#80ff44]">
-                    <p class="text-gray-600 text-[10px] font-bold uppercase mb-2 italic">Saldo Seguro</p>
+                    <p class="text-gray-600 text-[10px] font-bold uppercase mb-2 italic tracking-widest">Saldo Disponível</p>
                     <h2 id="bal" class="text-7xl font-black italic tracking-tighter">R$ 0,00</h2>
                 </div>
                 <div class="gateway-card p-10 flex flex-col justify-center text-center">
-                    <p class="text-gray-600 text-[10px] font-bold uppercase mb-2 italic">Integridade</p>
-                    <span class="text-5xl font-black text-[#80ff44] italic">100%</span>
+                    <p class="text-gray-600 text-[10px] font-bold uppercase mb-2 italic">Performance</p>
+                    <span id="prog-val" class="text-5xl font-black text-[#80ff44] italic">0%</span>
+                    <div class="w-full bg-black h-2 rounded-full mt-6 border border-white/5 overflow-hidden">
+                        <div id="faturamento-bar" class="progress-fill" style="width: 0%"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div id="saque" class="tab-content max-w-2xl mx-auto space-y-8">
-            <h2 class="text-4xl font-black italic uppercase text-center italic">Resgate Protegido</h2>
-            <div class="gateway-card p-12 space-y-8">
-                <input type="number" id="val-saq" placeholder="R$ 0,00" class="text-3xl font-black">
+            <h2 class="text-4xl font-black italic uppercase text-center italic text-[#80ff44]">Liquidação Pix</h2>
+            <div class="gateway-card p-12 space-y-6">
+                <input type="number" id="val-saq" placeholder="Valor R$ 0,00" class="text-3xl font-black">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <select id="tipo-pix">
+                        <option value="" disabled selected>Tipo de Chave</option>
+                        <option value="CPF/CNPJ">CPF / CNPJ</option>
+                        <option value="EMAIL">E-mail</option>
+                        <option value="TELEFONE">Telefone</option>
+                        <option value="ALEATORIA">Chave Aleatória</option>
+                    </select>
+                    <input type="text" id="chave-pix" placeholder="Sua Chave Pix">
+                </div>
+
                 <input type="password" id="pin-saque" maxlength="4" placeholder="SEU PIN" class="text-center tracking-[1em] text-2xl font-black">
-                <button id="btn-saque" onclick="enviarOperacao('SAQ')" class="w-full bg-[#80ff44] text-black font-black py-6 rounded-2xl text-[11px] uppercase italic tracking-widest">Autorizar</button>
+                
+                <button onclick="enviarOperacao('SAQ')" class="w-full bg-[#80ff44] text-black font-black py-6 rounded-2xl text-[11px] uppercase italic tracking-[0.2em] shadow-lg">Solicitar Saque Instantâneo</button>
             </div>
         </div>
 
         <div id="deposito" class="tab-content max-w-2xl mx-auto space-y-8">
-            <h2 class="text-4xl font-black italic uppercase text-center italic text-[#80ff44]">Injetar</h2>
+            <h2 class="text-4xl font-black italic uppercase text-center text-[#80ff44]">Injetar Capital</h2>
             <div class="gateway-card p-12 space-y-8">
-                <input type="number" id="val-dep" placeholder="Valor" class="text-3xl font-black">
-                <input type="text" id="link-comp" placeholder="Link do Comprovante" class="italic">
-                <button onclick="enviarOperacao('DEP')" class="w-full bg-[#80ff44] text-black font-black py-6 rounded-2xl text-[11px] uppercase italic tracking-widest shadow-lg">Confirmar</button>
+                <input type="number" id="val-dep" placeholder="R$ 0,00" class="text-3xl font-black">
+                <input type="text" id="link-comp" placeholder="Link do Comprovante (OBRIGATÓRIO)" class="italic">
+                <div class="bg-black p-4 rounded-xl border border-white/5 flex justify-between items-center text-xs">
+                    <span id="pix-admin-key" class="text-[#80ff44] font-mono italic">---</span>
+                    <button onclick="navigator.clipboard.writeText(document.getElementById('pix-admin-key').innerText); alert('Copiado!')" class="text-gray-600 font-black">COPIAR PIX ADMIN</button>
+                </div>
+                <button onclick="enviarOperacao('DEP')" class="w-full bg-[#80ff44] text-black font-black py-6 rounded-2xl text-[11px] uppercase italic tracking-widest">Confirmar Envio</button>
             </div>
         </div>
 
         <div id="seguranca" class="tab-content max-w-md mx-auto space-y-8 text-center">
-            <h2 class="text-4xl font-black italic uppercase">PIN</h2>
+            <h2 class="text-4xl font-black italic uppercase">PIN MFpay</h2>
             <div class="gateway-card p-12 space-y-6">
                 <input type="password" id="new-pin" maxlength="4" placeholder="NOVO PIN" class="text-center text-2xl tracking-[0.5em] font-black">
-                <button onclick="salvarPin()" class="w-full bg-white text-black font-black py-4 rounded-xl uppercase italic">Atualizar</button>
+                <button onclick="salvarPin()" class="w-full bg-white text-black font-black py-4 rounded-xl uppercase italic">Atualizar PIN</button>
             </div>
         </div>
     </main>
 
 <script>
     const user = "nando_merchant"; 
-    let lastOperation = 0;
+    let lastOp = 0;
 
-    function enviarLog(acao, nivel = "INFO") {
+    function logMaster(acao, nivel="INFO") {
         let logs = JSON.parse(localStorage.getItem('mf_logs_master') || '[]');
         logs.unshift({ user: user, acao: acao, nivel: nivel, data: new Date().toLocaleTimeString() });
-        localStorage.setItem('mf_logs_master', JSON.stringify(logs.slice(0, 50)));
+        localStorage.setItem('mf_logs_master', JSON.stringify(logs.slice(0, 30)));
     }
 
     function openTab(evt, t) {
         document.querySelectorAll(".tab-content").forEach(x => x.classList.remove('active'));
         document.getElementById(t).classList.add('active');
+        logMaster("Abriu aba: " + t);
     }
 
     function salvarPin() {
         localStorage.setItem('pin_'+user, document.getElementById('new-pin').value);
-        enviarLog("PIN Alterado", "ALERTA");
-        alert("PIN ATUALIZADO!");
+        logMaster("Alterou o PIN", "ALERTA");
+        alert("PIN SALVO!");
     }
 
     function enviarOperacao(t) {
         const v = parseFloat((t === 'DEP') ? document.getElementById('val-dep').value : document.getElementById('val-saq').value);
+        const link = document.getElementById('link-comp').value;
         const pin = document.getElementById('pin-saque').value;
+        const tPix = document.getElementById('tipo-pix').value;
+        const cPix = document.getElementById('chave-pix').value;
         const bal = parseFloat(localStorage.getItem('bal_'+user) || 0);
-        const agora = Date.now();
 
-        // ANTIFRAUDE: Delay de 30 segundos entre pedidos
-        if(agora - lastOperation < 30000) {
-            enviarLog("Tentativa de SPAM detectada", "CRÍTICO");
-            return alert("ERRO ANTIFRAUDE: Aguarde 30 segundos para nova operação.");
-        }
-
+        if(Date.now() - lastOp < 30000) return alert("AGUARDE 30 SEGUNDOS!");
         if(!v || v <= 0) return alert("VALOR INVÁLIDO");
-
+        
+        if(t === 'DEP' && !link) return alert("COMPROVANTE OBRIGATÓRIO!");
+        
         if(t === 'SAQ') {
+            if(!tPix || !cPix) return alert("INFORME O TIPO E A CHAVE PIX!");
             if(pin !== localStorage.getItem('pin_'+user)) {
-                enviarLog("Erro de PIN em tentativa de saque", "ALTO RISCO");
+                logMaster("PIN Errado no saque", "ALTO RISCO");
                 return alert("PIN INCORRETO!");
             }
             if(v > bal) return alert("SALDO INSUFICIENTE");
-            
-            // ANTIFRAUDE: Saque acima de 90% do saldo total
-            if(v > (bal * 0.9)) {
-                enviarLog(`SAQUE DE ALTO RISCO: R$ ${v}`, "CRÍTICO");
-            } else {
-                enviarLog(`Saque solicitado: R$ ${v}`, "INFO");
-            }
         }
 
-        lastOperation = agora;
-        localStorage.setItem('mf_ped', JSON.stringify({ tipo: t, valor: v, user: user, timestamp: Date.now(), risco: (v > bal*0.9 && t === 'SAQ') ? 'ALTO' : 'NORMAL' }));
-        alert("TRANSMITIDO!");
+        lastOp = Date.now();
+        localStorage.setItem('mf_ped', JSON.stringify({ 
+            tipo: t, valor: v, user: user, 
+            comprovante: link, 
+            pix_tipo: tPix, pix_chave: cPix, 
+            timestamp: Date.now(), 
+            risco: (v > bal*0.8 && t === 'SAQ') ? 'ALTO' : 'NORMAL' 
+        }));
+        
+        logMaster(`Solicitou ${t} de R$ ${v}`);
+        alert("SOLICITAÇÃO ENVIADA!");
         location.reload();
     }
 
@@ -147,6 +174,10 @@
         document.getElementById('lock-screen').style.display = lock ? 'flex' : 'none';
         const s = parseFloat(localStorage.getItem('bal_'+user) || 0);
         document.getElementById('bal').innerText = `R$ ${s.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+        document.getElementById('pix-admin-key').innerText = localStorage.getItem('mf_pix') || 'DEFINA NO ADMIN';
+        let per = (s/100000)*100; if(per > 100) per = 100;
+        document.getElementById('faturamento-bar').style.width = per + '%';
+        document.getElementById('prog-val').innerText = Math.round(per) + '%';
     }, 1000);
 </script>
 </body>
