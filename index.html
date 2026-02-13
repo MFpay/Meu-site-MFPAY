@@ -1,78 +1,90 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MFpay | Acesso Restrito</title>
+    <title>MFpay | Gateway Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .login-card { background: #0d0d0d; border: 1px solid #1a1a1a; padding: 50px; border-radius: 30px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        input { background: #000 !important; border: 1px solid #222 !important; border-radius: 15px; color: #fff; padding: 20px; width: 100%; outline: none; margin-bottom: 20px; text-align: center; font-weight: 700; }
-        input:focus { border-color: #80ff44 !important; }
-        .btn-login { background: #80ff44; color: #000; font-weight: 900; text-transform: uppercase; font-style: italic; width: 100%; padding: 20px; border-radius: 15px; letter-spacing: 1px; transition: 0.3s; }
-        .btn-login:hover { transform: scale(1.02); shadow: 0 0 20px rgba(128,255,68,0.3); }
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        .bg-glow { position: absolute; width: 300px; height: 300px; background: #80ff44; filter: blur(150px); opacity: 0.1; z-index: 0; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .login-box { background: rgba(13, 13, 13, 0.8); border: 1px solid rgba(255, 255, 255, 0.05); padding: 50px; border-radius: 40px; width: 100%; max-width: 420px; text-align: center; backdrop-filter: blur(20px); z-index: 10; position: relative; }
+        input { background: #000 !important; border: 1px solid #1a1a1a !important; border-radius: 18px; color: #fff; padding: 22px; width: 100%; outline: none; margin-bottom: 15px; text-align: center; font-size: 14px; transition: 0.3s; }
+        input:focus { border-color: #80ff44 !important; box-shadow: 0 0 15px rgba(128, 255, 68, 0.1); }
+        .btn-access { background: #80ff44; color: #000; font-weight: 900; text-transform: uppercase; font-style: italic; width: 100%; padding: 22px; border-radius: 18px; letter-spacing: 1px; transition: 0.4s; margin-top: 10px; cursor: pointer; }
+        .btn-access:hover { transform: translateY(-3px); shadow: 0 10px 30px rgba(128, 255, 68, 0.2); }
+        .logo-mf { font-size: 45px; font-weight: 900; font-style: italic; color: #80ff44; letter-spacing: -2px; margin-bottom: 5px; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-    <div class="login-card">
-        <h1 class="text-4xl font-black italic text-[#80ff44] mb-2 uppercase">MFpay</h1>
-        <p class="text-gray-600 text-[10px] font-bold uppercase tracking-[0.3em] mb-10">Gateway de Elite</p>
+    <div class="bg-glow"></div>
+
+    <div class="login-box">
+        <h1 class="logo-mf">MFpay</h1>
+        <p class="text-gray-600 text-[10px] font-bold uppercase tracking-[0.4em] mb-12">Digital Asset Gateway</p>
         
-        <div id="login-form">
-            <input type="text" id="user-name" placeholder="NOME DO MERCHANT">
-            <input type="password" id="user-pin" maxlength="4" placeholder="PIN DE ACESSO">
-            <button onclick="autenticar()" id="btn-entrar" class="btn-login">Entrar no Sistema</button>
+        <div id="auth-fields">
+            <input type="text" id="mf-user" placeholder="ID DO MERCHANT" autocomplete="off">
+            <input type="password" id="mf-pin" maxlength="4" placeholder="PIN DE ACESSO">
+            <button onclick="fazerLogin()" id="btn-login" class="btn-access">Entrar na Rede</button>
         </div>
         
-        <p id="msg" class="mt-6 text-xs font-bold text-red-500 uppercase italic"></p>
+        <p id="feedback-msg" class="mt-8 text-[11px] font-black text-red-500 uppercase italic tracking-widest"></p>
     </div>
 
 <script>
-    const API = "https://sheetdb.io/api/v1/n1iq28pv28d009pq";
+    const API_URL = "https://sheetdb.io/api/v1/n1iq28pv28d009pq";
 
-    async function autenticar() {
-        const user = document.getElementById('user-name').value.toUpperCase();
-        const pin = document.getElementById('user-pin').value;
-        const btn = document.getElementById('btn-entrar');
-        const msg = document.getElementById('msg');
+    async function fazerLogin() {
+        const user = document.getElementById('mf-user').value.toUpperCase().trim();
+        const pin = document.getElementById('mf-pin').value;
+        const btn = document.getElementById('btn-login');
+        const msg = document.getElementById('feedback-msg');
 
         if(!user || !pin) {
-            msg.innerText = "Preencha todos os campos";
+            msg.innerText = "Campos Obrigatórios";
             return;
         }
 
-        btn.innerText = "VERIFICANDO...";
+        btn.innerText = "VALIDANDO CREDENCIAIS...";
+        btn.style.opacity = "0.6";
         btn.disabled = true;
 
         try {
-            // BUSCA O MERCHANT NA PLANILHA (TIPO CADASTRO OU LOG)
-            const res = await fetch(`${API}/search?merchant=${user}&tipo=CADASTRO`);
-            const dados = await res.json();
+            // O sistema procura o Merchant na sua Planilha Google
+            const response = await fetch(`${API_URL}/search?merchant=${user}&tipo=CADASTRO`);
+            const data = await response.json();
 
-            if(dados.length > 0) {
-                // Se achou o merchant, salvamos na sessão e redirecionamos
-                localStorage.setItem('mf_auth_user', user);
-                localStorage.setItem('mf_auth_active', 'true');
+            if(data.length > 0) {
+                // SESSÃO MFpay ATIVA
+                localStorage.setItem('mf_user', user);
+                localStorage.setItem('mf_logged', 'true');
                 
-                msg.classList.remove('text-red-500');
-                msg.classList.add('text-[#80ff44]');
-                msg.innerText = "ACESSO LIBERADO!";
+                msg.style.color = "#80ff44";
+                msg.innerText = "ACESSO CONCEDIDO. BEM-VINDO.";
                 
                 setTimeout(() => {
                     window.location.href = 'dashboard.html';
-                }, 1000);
+                }, 1200);
             } else {
-                msg.innerText = "MERCHANT NÃO LOCALIZADO";
+                msg.innerText = "MERCHANT NÃO RECONHECIDO";
                 btn.innerText = "TENTAR NOVAMENTE";
+                btn.style.opacity = "1";
                 btn.disabled = false;
             }
-        } catch (e) {
-            msg.innerText = "ERRO DE CONEXÃO";
+        } catch (error) {
+            msg.innerText = "ERRO NA LIGAÇÃO AO BANCO";
             btn.disabled = false;
+            btn.innerText = "ENTRAR NA REDE";
         }
     }
+
+    // Atalho: Entrar com a tecla Enter
+    document.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') fazerLogin();
+    });
 </script>
 </body>
 </html>
