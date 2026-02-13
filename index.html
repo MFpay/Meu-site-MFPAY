@@ -1,44 +1,37 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8"><title>Acesso Restrito | MF PAY</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MFpay | Gateway Soberano</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background: #020617; font-family: 'Inter', sans-serif; background-image: radial-gradient(#1e293b 0.5px, transparent 0.5px); background-size: 30px 30px; }
-        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
-    </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
-    <div class="w-full max-w-sm glass p-10 rounded-[40px] shadow-2xl">
-        <div class="text-center mb-10">
-            <h1 class="text-3xl font-black text-white italic tracking-tighter uppercase">MF<span class="text-green-500">PAY</span></h1>
-            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-2">Segurança Soberana Ativa</p>
-        </div>
+<body class="bg-black text-white flex items-center justify-center min-h-screen p-6">
+    <div class="bg-[#0a0a0a] p-12 rounded-[50px] border border-white/5 w-full max-w-md shadow-2xl text-center">
+        <h1 id="display-name" class="text-5xl font-black italic mb-10">MF<span class="text-white">PAY</span></h1>
         <div class="space-y-4">
-            <input type="text" id="u" placeholder="USUÁRIO" class="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-2xl text-white outline-none focus:border-green-500 font-bold text-xs uppercase">
-            <input type="password" id="p" placeholder="SENHA" class="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-2xl text-white outline-none focus:border-green-500 font-bold text-xs uppercase">
-            <button onclick="login()" class="w-full bg-green-500 text-black font-black py-4 rounded-2xl hover:brightness-110 transition uppercase italic text-xs shadow-lg shadow-green-500/20">Entrar no Sistema</button>
+            <input type="email" id="email" placeholder="IDENTIDADE" class="w-full bg-black border border-white/10 p-5 rounded-2xl outline-none font-bold focus:border-[#80ff44]">
+            <input type="password" id="pass" placeholder="CHAVE MESTRA" class="w-full bg-black border border-white/10 p-5 rounded-2xl outline-none font-bold focus:border-[#80ff44]">
+            <button onclick="entrar()" id="btn-entrar" class="w-full bg-[#80ff44] text-black py-6 rounded-3xl font-black uppercase italic hover:scale-105 transition-all">Aceder ao Trono</button>
         </div>
     </div>
-<script>
-    function login() {
-        const u = document.getElementById('u').value.toLowerCase().trim();
-        const p = document.getElementById('p').value;
-        const bans = JSON.parse(localStorage.getItem('mf_blacklist') || '[]');
-        const isLocked = localStorage.getItem('mf_lockdown') === 'true';
+    <script>
+        const wl = JSON.parse(localStorage.getItem('mf_white_label') || '{"nome":"MFpay","cor":"#80ff44"}');
+        document.getElementById('display-name').style.color = wl.cor;
+        document.getElementById('btn-entrar').style.backgroundColor = wl.cor;
 
-        if(bans.includes(u)) return alert("⚠️ ACESSO NEGADO: Usuário banido.");
-        
-        if(u === 'admin' && p === '2026_MASTER_MFPAY') {
-            localStorage.setItem('role', 'MASTER');
-            location.href = 'admin.html';
-        } else if(u !== '') {
-            if(isLocked) return alert("🔒 SISTEMA EM MANUTENÇÃO");
-            localStorage.setItem('role', 'USER');
-            localStorage.setItem('currentUser', u);
-            location.href = 'dashboard.html';
+        function entrar() {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('pass').value;
+            if(e === 'admin@mf.com' && p === 'master77') {
+                sessionStorage.setItem('auth_token', btoa('master_soberano_' + Date.now()));
+                window.location.href = 'admin.html';
+            } else if(e !== '' && p !== '') {
+                sessionStorage.setItem('auth_token', btoa('cliente_ativo_' + Date.now()));
+                sessionStorage.setItem('user_mf', 'Nando'); 
+                window.location.href = 'painel.html';
+            } else { alert("ACESSO NEGADO."); }
         }
-    }
-</script>
+    </script>
 </body>
 </html>
