@@ -16,26 +16,20 @@
 </head>
 <body class="flex items-center justify-center h-screen px-4">
     <div class="login-card p-12 w-full max-w-[420px] text-center">
-        <div class="mb-10">
+        <div class="mb-10 text-center flex flex-col items-center">
             <div class="inline-flex p-4 bg-[#00e38c]/10 rounded-3xl mb-4">
                 <i data-lucide="shield-check" class="text-[#00e38c] w-12 h-12"></i>
             </div>
             <h1 class="text-4xl font-black italic text-[#00e38c] tracking-tighter uppercase">MFPAY</h1>
-            <p class="text-[10px] text-zinc-600 uppercase tracking-[0.5em] font-black mt-2">Security Protocol Active</p>
+            <p class="text-[10px] text-zinc-600 uppercase tracking-[0.5em] font-black mt-2">Criptografia Ativa</p>
         </div>
         
         <div class="space-y-4">
-            <input type="email" id="email" placeholder="Seu E-mail" class="w-full p-5 rounded-2xl text-sm">
+            <input type="email" id="email" placeholder="E-mail do Merchant" class="w-full p-5 rounded-2xl text-sm">
             <input type="password" id="pass" placeholder="PIN de Acesso" class="w-full p-5 rounded-2xl text-sm">
         </div>
 
-        <button onclick="autenticar()" id="btn" class="btn-mf w-full py-5 rounded-2xl mt-10 uppercase text-xs tracking-widest">Acessar Console Seguro</button>
-        
-        <div class="mt-10 pt-8 border-t border-zinc-800 flex justify-center gap-4 opacity-20 grayscale">
-            <i data-lucide="lock" class="w-5 h-5"></i>
-            <i data-lucide="cpu" class="w-5 h-5"></i>
-            <i data-lucide="globe" class="w-5 h-5"></i>
-        </div>
+        <button onclick="autenticar()" id="btn" class="btn-mf w-full py-5 rounded-2xl mt-10 uppercase text-xs tracking-widest italic">Acessar Rede Segura</button>
     </div>
 
 <script>
@@ -48,42 +42,30 @@
         const b = document.getElementById('btn');
         if(!e || !p) return alert("Preencha todos os campos");
 
-        b.innerText = "VERIFICANDO..."; b.disabled = true;
+        b.innerText = "SINCRO..."; b.disabled = true;
 
         try {
-            // Busca o merchant na planilha
             const res = await fetch(`${API}/search?merchant=${e}&tipo=CADASTRO`);
             const data = await res.json();
 
             if (data.length > 0) {
-                // Se o merchant já existe, valida o PIN
                 if (data[0].id === p) {
                     localStorage.setItem('mf_user', e);
                     window.location.href = 'dashboard.html';
                 } else {
-                    alert("PIN de acesso incorreto para este e-mail.");
-                    b.disabled = false; b.innerText = "Acessar Console Seguro";
+                    alert("PIN de acesso incorreto.");
+                    b.disabled = false; b.innerText = "Acessar Rede Segura";
                 }
             } else {
-                // SE NÃO EXISTE: Cria o cadastro automático agora
                 await fetch(API, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ data: [{ 
-                        id: p, 
-                        merchant: e, 
-                        tipo: 'CADASTRO', 
-                        status: 'Aprovado', 
-                        data_hora: new Date().toLocaleString() 
-                    }]})
+                    body: JSON.stringify({ data: [{ id: p, merchant: e, tipo: 'CADASTRO', status: 'Aprovado', data_hora: new Date().toLocaleString() }]})
                 });
                 localStorage.setItem('mf_user', e);
                 window.location.href = 'dashboard.html';
             }
-        } catch (err) { 
-            alert("Erro na rede. Tente novamente."); 
-            b.disabled = false; b.innerText = "Acessar Console Seguro";
-        }
+        } catch (err) { b.disabled = false; }
     }
 </script>
 </body>
