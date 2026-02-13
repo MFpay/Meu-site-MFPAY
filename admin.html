@@ -1,115 +1,126 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8"><title>Soberano | Master Control</title>
+    <meta charset="UTF-8"><title>Soberano Admin | MF PAY</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #020617; color: white; font-family: 'Inter', sans-serif; }
+        body { background: #020617; color: white; font-family: sans-serif; }
         .tab-active { border-bottom: 2px solid #22c55e; color: #22c55e; }
-        .log-line { border-left: 2px solid #1e293b; padding-left: 10px; margin-bottom: 4px; }
+        .matrix { font-family: 'Fira Code', monospace; color: #10b981; font-size: 10px; }
     </style>
 </head>
 <body class="p-4 md:p-8">
     <div class="max-w-5xl mx-auto space-y-6">
-        <header class="flex justify-between items-center bg-[#0f172a] p-6 rounded-3xl border border-slate-800 shadow-2xl">
-            <h1 class="text-xl font-black text-green-500 italic uppercase">MF<span class="text-white">ADMIN</span></h1>
-            <div class="flex items-center gap-3 bg-slate-900 px-4 py-2 rounded-full border border-slate-800">
-                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span class="text-[10px] font-bold uppercase tracking-widest">Soberano Online</span>
+        
+        <header class="flex justify-between items-center bg-[#0f172a] p-6 rounded-[35px] border border-slate-800">
+            <div>
+                <h1 class="text-xl font-black text-green-500 italic">MF<span class="text-white">ADMIN</span></h1>
+                <p id="lucro-total" class="text-[10px] font-bold text-slate-500 uppercase">LUCRO: R$ 0,00</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="toggleLock()" id="lock-btn" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase transition-all">🔒 Lockdown</button>
+                <button onclick="location.href='index.html'" class="bg-red-500/10 text-red-500 px-4 py-2 rounded-xl text-[10px] font-bold">SAIR</button>
             </div>
         </header>
 
-        <nav class="flex gap-8 border-b border-slate-800 px-4 overflow-x-auto">
-            <button onclick="openTab('fin')" id="t-fin" class="tab-active pb-3 text-[10px] font-bold uppercase">💰 Financeiro</button>
-            <button onclick="openTab('logs')" id="t-logs" class="pb-3 text-slate-500 text-[10px] font-bold uppercase">📡 Atividades</button>
-            <button onclick="openTab('cfg')" id="t-cfg" class="pb-3 text-slate-500 text-[10px] font-bold uppercase">⚙️ Ajustes</button>
+        <nav class="flex gap-6 border-b border-slate-800 pb-3">
+            <button onclick="tab('fila')" id="t-fila" class="tab-active text-[10px] font-black uppercase">🛒 Pedidos</button>
+            <button onclick="tab('ban')" id="t-ban" class="text-slate-500 text-[10px] font-black uppercase">🚫 Blacklist</button>
+            <button onclick="tab('cfg')" id="t-cfg" class="text-slate-500 text-[10px] font-black uppercase">⚙️ Configs</button>
         </nav>
 
-        <div id="fin" class="tab-content space-y-6">
-            <div id="fila" class="grid grid-cols-1 gap-4"></div>
+        <div id="fila" class="tab-content space-y-4 pt-4">
+            <div id="lista-pedidos"></div>
         </div>
 
-        <div id="logs" class="hidden tab-content bg-[#0f172a] p-6 rounded-[35px] border border-slate-800 h-[500px] flex flex-col">
-            <h3 class="text-[10px] font-black text-purple-500 uppercase mb-4 italic underline">Monitor de Fraude e Atividade</h3>
-            <div id="activity-log" class="flex-1 overflow-y-auto font-mono text-[10px] text-slate-400 space-y-1"></div>
-        </div>
-
-        <div id="cfg" class="hidden tab-content bg-[#0f172a] p-8 rounded-[35px] border border-slate-800 space-y-6">
-            <div>
-                <label class="text-[10px] font-bold text-slate-500 uppercase mb-2 block">Chave PIX de Recebimento</label>
-                <div class="flex gap-2">
-                    <input type="text" id="c-pix" class="flex-1 bg-[#1e293b] p-4 rounded-2xl outline-none border border-slate-700 text-xs font-bold">
-                    <button onclick="salvarCfg()" class="bg-green-500 text-black px-8 rounded-2xl font-black uppercase text-[10px]">Salvar</button>
-                </div>
+        <div id="ban" class="hidden tab-content bg-[#0f172a] p-8 rounded-[40px] border border-slate-800">
+            <h3 class="text-xs font-black text-red-500 uppercase mb-4 italic">Banimento Instantâneo</h3>
+            <div class="flex gap-2 mb-6">
+                <input type="text" id="u-ban" placeholder="Usuário para banir" class="flex-1 bg-slate-900 p-4 rounded-2xl border border-slate-700 text-xs text-white">
+                <button onclick="banir()" class="bg-red-600 text-white px-8 rounded-2xl font-black text-[10px]">BANIR</button>
             </div>
-            <button onclick="localStorage.clear(); location.reload();" class="text-red-500 text-[9px] font-bold uppercase underline">Resetar Todo o Sistema (Cuidado)</button>
+            <div id="lista-bans" class="text-[10px] text-slate-500 flex flex-wrap gap-2"></div>
+        </div>
+
+        <div id="cfg" class="hidden tab-content bg-[#0f172a] p-8 rounded-[40px] border border-slate-800">
+            <p class="text-[10px] font-bold text-slate-500 uppercase mb-2 italic">Chave PIX Recebimento</p>
+            <input type="text" id="c-pix" class="w-full bg-slate-900 p-4 rounded-2xl border border-slate-700 text-xs font-bold mb-4">
+            <button onclick="salvarPix()" class="w-full bg-green-500 text-black font-black py-4 rounded-2xl text-[10px] uppercase">Salvar Configurações</button>
         </div>
     </div>
 
 <script>
-    function openTab(t) {
+    function tab(id) {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-        document.getElementById(t).classList.remove('hidden');
-        document.querySelectorAll('nav button').forEach(b => b.className = "pb-3 text-slate-500 text-[10px] font-bold uppercase");
-        document.getElementById('t-'+t).className = "tab-active pb-3 text-[10px] font-bold uppercase";
+        document.getElementById(id).classList.remove('hidden');
+        document.querySelectorAll('nav button').forEach(b => b.className = "text-slate-500 text-[10px] font-black uppercase");
+        document.getElementById('t-'+id).className = "tab-active text-[10px] font-black uppercase";
     }
 
-    function addLog(m, type="INFO") {
-        let logs = JSON.parse(localStorage.getItem('mf_logs') || '[]');
-        logs.unshift(`[${new Date().toLocaleTimeString()}] [${type}] ${m}`);
-        localStorage.setItem('mf_logs', JSON.stringify(logs.slice(0,100)));
-        renderLogs();
+    function toggleLock() {
+        const s = localStorage.getItem('mf_lockdown') === 'true';
+        localStorage.setItem('mf_lockdown', !s);
+        render();
     }
 
-    function renderLogs() {
-        const logs = JSON.parse(localStorage.getItem('mf_logs') || '[]');
-        document.getElementById('activity-log').innerHTML = logs.map(l => `<div class="log-line ${l.includes('FRAUDE')?'text-red-500':''}">> ${l}</div>`).join('');
+    function banir() {
+        const u = document.getElementById('u-ban').value.toLowerCase(); if(!u) return;
+        let b = JSON.parse(localStorage.getItem('mf_blacklist') || '[]');
+        if(!b.includes(u)) b.push(u);
+        localStorage.setItem('mf_blacklist', JSON.stringify(b));
+        render();
+    }
+
+    function salvarPix() {
+        localStorage.setItem('mf_pix', document.getElementById('c-pix').value);
+        alert("PIX Atualizado!");
     }
 
     function render() {
         const p = JSON.parse(localStorage.getItem('mf_ped') || 'null');
-        const fila = document.getElementById('fila');
-        if(!p) fila.innerHTML = `<div class="text-center p-20 text-slate-600 text-[10px] font-bold uppercase italic tracking-widest">Nenhuma atividade pendente...</div>`;
-        else {
-            fila.innerHTML = `
-            <div class="bg-[#1e293b] p-8 rounded-[40px] border border-slate-700 flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
+        const lista = document.getElementById('lista-pedidos');
+        
+        if(!p) {
+            lista.innerHTML = `<p class="text-center p-20 text-slate-700 text-[10px] font-bold uppercase animate-pulse italic tracking-[0.3em]">Aguardando Movimentação...</p>`;
+        } else {
+            lista.innerHTML = `<div class="p-8 rounded-[40px] bg-[#1e293b] border border-slate-700 flex justify-between items-center shadow-2xl">
                 <div>
-                    <span class="bg-green-900/40 text-green-400 text-[9px] px-3 py-1 rounded-full font-bold uppercase">${p.tipo} SOLICITADO</span>
-                    <h2 class="text-4xl font-black italic mt-2 tracking-tighter">R$ ${p.valor} <span class="text-sm text-slate-500">por ${p.user}</span></h2>
+                    <p class="text-[9px] font-black text-green-500 uppercase">${p.tipo} DE ${p.user}</p>
+                    <h2 class="text-4xl font-black italic tracking-tighter">R$ ${p.valor}</h2>
+                    ${p.comprovante ? `<a href="${p.comprovante}" target="_blank" class="text-[9px] text-blue-400 font-bold underline">VER COMPROVANTE</a>` : ''}
                 </div>
-                <div class="flex flex-col items-center gap-4">
-                    ${p.comprovante ? `<a href="${p.comprovante}" target="_blank" class="bg-blue-600 text-white text-[10px] px-6 py-2 rounded-full font-bold uppercase animate-bounce">Ver Comprovante</a>` : '<span class="text-red-500 text-[9px] font-bold uppercase">Sem Comprovante</span>'}
-                    <div class="flex gap-2">
-                        <button onclick="proc('OK','${p.valor}','${p.user}','${p.tipo}')" class="bg-green-500 text-black px-8 py-3 rounded-2xl font-black uppercase text-xs">Aprovar</button>
-                        <button onclick="proc('REC',0,'${p.user}')" class="bg-slate-900 text-white px-8 py-3 rounded-2xl font-bold uppercase text-xs">Recusar</button>
-                    </div>
-                </div>
-            </div>`;
+                <div class="flex gap-2">
+                    <button onclick="proc('OK','${p.valor}','${p.user}','${p.tipo}')" class="bg-green-500 text-black px-8 py-3 rounded-2xl font-black text-[10px] uppercase">Aprovar</button>
+                    <button onclick="proc('REC',0,'${p.user}')" class="bg-slate-900 text-red-500 border border-red-500/20 px-8 py-3 rounded-2xl font-black text-[10px] uppercase">Lixo</button>
+                </div></div>`;
         }
-        renderLogs();
+
+        const l = localStorage.getItem('mf_lockdown') === 'true';
+        const btn = document.getElementById('lock-btn');
+        btn.innerText = l ? "🔓 Abrir Site" : "🔒 Lockdown";
+        btn.className = l ? "bg-red-600 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase animate-pulse" : "bg-slate-800 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase";
+
+        const bans = JSON.parse(localStorage.getItem('mf_blacklist') || '[]');
+        document.getElementById('lista-bans').innerHTML = bans.map(b => `<span class="bg-red-500/10 text-red-500 px-3 py-1 rounded-full border border-red-500/20 uppercase font-bold">${b}</span>`).join('');
+        
+        const lucro = parseFloat(localStorage.getItem('mf_lucro_total') || 0);
+        document.getElementById('lucro-total').innerText = `LUCRO TOTAL: R$ ${lucro.toFixed(2)}`;
     }
 
-    function proc(s, v, u, tipo) {
+    function proc(s, v, u, t) {
         if(s === 'OK') {
             let b = parseFloat(localStorage.getItem('bal_'+u) || 0);
-            let total = tipo === 'SAQ' ? b - parseFloat(v) : b + parseFloat(v);
-            localStorage.setItem('bal_'+u, total.toFixed(2));
-            addLog(`DINHEIRO LIBERADO: R$ ${v} para ${u}`, "FINANCEIRO");
-        } else {
-            addLog(`PEDIDO RECUSADO: ${u}`, "ALERTA");
+            localStorage.setItem('bal_'+u, (t === 'SAQ' ? b - parseFloat(v) : b + parseFloat(v)).toFixed(2));
+            if(t === 'SAQ') {
+                let luc = parseFloat(localStorage.getItem('mf_lucro_total') || 0);
+                localStorage.setItem('mf_lucro_total', (luc + (v/0.95 - v)).toFixed(2));
+            }
         }
         localStorage.removeItem('mf_ped'); render();
     }
 
-    function salvarCfg() {
-        localStorage.setItem('mf_pix', document.getElementById('c-pix').value);
-        addLog(`CHAVE PIX ALTERADA para: ${document.getElementById('c-pix').value}`, "SISTEMA");
-        alert("Salvo!");
-    }
-
     document.getElementById('c-pix').value = localStorage.getItem('mf_pix') || '';
-    setInterval(render, 2000);
-    render();
+    setInterval(render, 2000); render();
 </script>
 </body>
 </html>
