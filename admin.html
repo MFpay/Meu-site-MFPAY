@@ -1,0 +1,35 @@
+---
+layout: none
+---
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MF-PAY Admin</title>
+  <style>
+    body{margin:0;background:#0a0a0c;color:#dff9ff;font-family:Inter,Arial,sans-serif;padding:20px}
+    .card{max-width:860px;margin:auto;border:1px solid #00d2ff55;background:rgba(255,255,255,.08);padding:16px;border-radius:12px}
+    input,button{width:100%;padding:10px;margin-top:8px;border-radius:9px;border:1px solid #00d2ff55;background:#0f1624;color:#dff9ff}
+    button{background:#00d2ff;color:#04131b;font-weight:700;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="card" id="app"></div>
+<script>
+(()=>{
+  const pass='ADMIN_MF_2026_PRO';
+  const S='mfpay_';
+  const q=s=>document.querySelector(s);
+  q('#app').innerHTML='<h2>Painel Admin</h2><input id="pwd" type="password" placeholder="Senha"/><button id="in">Entrar</button><p id="m"></p>';
+  q('#in').onclick=()=>{
+    if(q('#pwd').value!==pass){q('#m').textContent='Senha inválida';return;}
+    const b=JSON.parse(localStorage.getItem(S+'balance')||'20000');
+    q('#app').innerHTML='<h2>Controle de Saldo</h2><input id="v" type="number" value="'+b+'"/><button id="save">Salvar saldo</button><button id="set">Fixar em 20000</button>';
+    q('#save').onclick=()=>localStorage.setItem(S+'balance',JSON.stringify(Number(q('#v').value||0)));
+    q('#set').onclick=()=>{localStorage.setItem(S+'balance',JSON.stringify(20000));q('#v').value='20000';};
+  };
+})();
+</script>
+</body>
+</html>
