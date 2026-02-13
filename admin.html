@@ -6,36 +6,68 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; }
-        .sidebar { background: #080808; height: 100vh; position: fixed; width: 280px; border-right: 1px solid #111; }
-        .main-content { margin-left: 280px; padding: 40px; }
-        .admin-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 20px; }
-        .nav-btn { width: 100%; text-align: left; padding: 18px 30px; font-size: 11px; font-weight: 900; color: #333; text-transform: uppercase; border-right: 4px solid transparent; italic; }
-        .nav-btn.active { color: #80ff44; border-right-color: #80ff44; background: linear-gradient(90deg, transparent, rgba(128,255,68,0.02)); }
-        .alerta-risco { animation: pulseRed 1s infinite; border: 1px solid red !important; }
-        @keyframes pulseRed { 0% { background: #0d0d0d; } 50% { background: #400000; } 100% { background: #0d0d0d; } }
-        .log-info { color: #555; } .log-alerta { color: #ffaa00; font-weight: bold; } .log-critico { color: #ff4444; font-weight: 900; background: #200; }
+        .sidebar { background: #080808; height: 100vh; position: fixed; width: 300px; border-right: 1px solid #111; }
+        .main-content { margin-left: 300px; padding: 40px; background: #050505; min-height: 100vh; }
+        .admin-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 24px; transition: 0.3s; }
+        .nav-btn { width: 100%; text-align: left; padding: 22px 40px; font-size: 11px; font-weight: 900; color: #333; text-transform: uppercase; letter-spacing: 2px; }
+        .nav-btn.active { color: #80ff44; border-right: 4px solid #80ff44; background: linear-gradient(90deg, transparent, rgba(128,255,68,0.02)); }
+        .risco-alto { border: 2px solid #ff4444 !important; background: rgba(255,0,0,0.05) !important; animation: blink 1s infinite; }
+        @keyframes blink { 50% { border-color: transparent; } }
+        input { background: #000 !important; border: 1px solid #1a1a1a !important; border-radius: 14px; color: #fff; padding: 14px; outline: none; width: 100%; }
+        .log-line { font-family: 'Courier New', Courier, monospace; font-size: 10px; padding: 6px 12px; border-bottom: 1px solid #111; }
+        .log-aviso { color: #ffaa00; } .log-critico { color: #ff4444; font-weight: bold; background: #200; }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar py-10 flex flex-col justify-between text-center">
-        <div class="px-10 mb-12"><h1 class="text-xl font-black italic text-[#80ff44] uppercase">MFpay MASTER</h1></div>
-        <nav class="space-y-1">
-            <button onclick="tab('fila')" class="nav-btn active">Fila Real-Time</button>
-            <button onclick="tab('auditoria')" class="nav-btn">Monitor de Risco</button>
+    <aside class="sidebar py-12 flex flex-col justify-between">
+        <div class="px-12 mb-12"><h1 class="text-2xl font-black italic text-[#80ff44] uppercase tracking-widest">MFpay MASTER</h1></div>
+        <nav class="flex-1">
+            <button onclick="tab('fila')" id="btn-fila" class="nav-btn active">Fila de Pedidos</button>
+            <button onclick="tab('merchants')" id="btn-mer" class="nav-btn">Gestão de Merchants</button>
+            <button onclick="tab('auditoria')" id="btn-aud" class="nav-btn">Auditoria Real-Time</button>
+            <button onclick="tab('config')" id="btn-cfg" class="nav-btn">Config Master</button>
         </nav>
-        <div class="px-8"><button onclick="toggleLockdown()" id="lockBtn" class="w-full py-4 rounded-xl font-black text-[10px] uppercase italic"></button></div>
+        <div class="px-8"><button onclick="toggleLockdown()" id="lockBtn" class="w-full py-5 rounded-2xl font-black text-[10px] uppercase italic border-2 transition-all"></button></div>
     </aside>
 
     <main class="main-content">
         <div id="fila" class="tab-sec">
-            <h2 class="text-4xl font-black italic uppercase italic mb-10">Monitor de Operações</h2>
-            <div id="lista-pedidos" class="space-y-4"></div>
+            <div class="grid grid-cols-4 gap-6 mb-12">
+                <div class="admin-card p-8 border-b-2 border-[#80ff44]"><p class="text-[9px] text-gray-700 font-black uppercase mb-1">Online</p><h3 id="stat-online" class="text-4xl font-black text-[#80ff44]">0</h3></div>
+                <div class="admin-card p-8 border-b-2 border-blue-500"><p class="text-[9px] text-gray-700 font-black uppercase mb-1">Pendente</p><h3 id="vol-esp" class="text-4xl font-black text-blue-500">R$ 0,00</h3></div>
+                <div class="admin-card p-8 border-b-2 border-purple-500"><p class="text-[9px] text-gray-700 font-black uppercase mb-1">Total Rede</p><h3 id="stat-total" class="text-3xl font-black italic">R$ 0,00</h3></div>
+                <div class="admin-card p-8 border-b-2 border-orange-500"><p class="text-[9px] text-gray-700 font-black uppercase mb-1">Alertas Risco</p><h3 id="stat-risco" class="text-3xl font-black text-red-500">0</h3></div>
+            </div>
+            <h2 class="text-3xl font-black italic uppercase mb-8">Fila de Operações</h2>
+            <div id="lista-pedidos" class="space-y-6"></div>
+        </div>
+
+        <div id="merchants" class="tab-sec hidden">
+            <h2 class="text-3xl font-black italic uppercase mb-6">Controle de Merchants</h2>
+            <div class="mb-10"><input type="text" id="search-mer" onkeyup="renderMerchants()" placeholder="🔍 Localizar merchant (Nome)..."></div>
+            <div class="admin-card overflow-hidden">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-black/80 font-black uppercase text-gray-600"><tr><th class="p-8">Nome</th><th class="p-8">Saldo em Custódia</th><th class="p-8 text-right">Ações</th></tr></thead>
+                    <tbody id="lista-merchants"></tbody>
+                </table>
+            </div>
         </div>
 
         <div id="auditoria" class="tab-sec hidden">
-            <h2 class="text-4xl font-black italic uppercase mb-8">Logs de Segurança</h2>
-            <div class="admin-card p-10 h-[500px] overflow-y-auto space-y-2 text-[10px]" id="container-logs"></div>
+            <h2 class="text-3xl font-black italic uppercase mb-8 text-[#80ff44]">Auditoria de Protocolos</h2>
+            <div class="admin-card h-[600px] overflow-y-auto" id="container-logs"></div>
+        </div>
+
+        <div id="config" class="tab-sec hidden">
+            <h2 class="text-3xl font-black italic uppercase mb-8">Configurações Master</h2>
+            <div class="admin-card p-12 max-w-xl space-y-8">
+                <div>
+                    <p class="text-[10px] font-black text-gray-600 uppercase mb-4">Chave Pix para Recebimento (Injeção)</p>
+                    <input type="text" id="master-pix" class="text-white font-black uppercase">
+                </div>
+                <button onclick="localStorage.setItem('mf_pix', document.getElementById('master-pix').value); alert('MFpay MASTER: Chave Pix Atualizada!')" class="w-full bg-[#80ff44] text-black font-black py-4 rounded-xl uppercase italic">Atualizar Chave Global</button>
+            </div>
         </div>
     </main>
 
@@ -43,53 +75,114 @@
 
 <script>
     let ultimoId = null;
+
     function tab(t) {
         document.querySelectorAll('.tab-sec').forEach(x => x.classList.add('hidden'));
         document.getElementById(t).classList.remove('hidden');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    }
+
+    function renderMerchants() {
+        const s = document.getElementById('search-mer').value.toLowerCase();
+        const l = document.getElementById('lista-merchants'); l.innerHTML = '';
+        for(let i=0; i<localStorage.length; i++) {
+            let k = localStorage.key(i);
+            if(k.startsWith('bal_')) {
+                let u = k.replace('bal_','');
+                if(u.includes(s)) {
+                    l.innerHTML += `
+                        <tr class="border-t border-white/5 font-bold italic">
+                            <td class="p-8 uppercase">${u}</td>
+                            <td class="p-8 text-[#80ff44] text-xl">R$ ${localStorage.getItem(k)}</td>
+                            <td class="p-8 text-right"><button onclick="let n=prompt('Ajustar Saldo MF de ${u}:');if(n)localStorage.setItem('${k}',n)" class="text-blue-500 hover:underline">MODIFICAR</button></td>
+                        </tr>`;
+                }
+            }
+        }
+    }
+
+    function decidir(acao) {
+        const ped = JSON.parse(localStorage.getItem('mf_ped'));
+        const hist = JSON.parse(localStorage.getItem('hist_'+ped.user) || '[]');
+        
+        const index = hist.findIndex(i => i.id === ped.id);
+        if(index !== -1) hist[index].status = acao === 'APR' ? 'Aprovado' : 'Recusado';
+        localStorage.setItem('hist_'+ped.user, JSON.stringify(hist));
+
+        if(acao === 'APR') {
+            const cur = parseFloat(localStorage.getItem('bal_'+ped.user) || 0);
+            const val = parseFloat(ped.valor);
+            localStorage.setItem('bal_'+ped.user, (ped.tipo === 'DEP' ? cur + val : cur - val).toFixed(2));
+        }
+        localStorage.removeItem('mf_ped'); renderPedidos();
     }
 
     function renderPedidos() {
         const ped = JSON.parse(localStorage.getItem('mf_ped'));
         const l = document.getElementById('lista-pedidos');
-        if(!ped) { l.innerHTML = '<p class="text-gray-800 font-black italic uppercase">Vigilância Estável...</p>'; return; }
+        if(!ped) { 
+            l.innerHTML = '<div class="admin-card p-20 text-center text-gray-800 font-black italic uppercase">Vigilância Estável: Nenhuma Operação Pendente</div>'; 
+            document.getElementById('vol-esp').innerText = 'R$ 0,00';
+            return; 
+        }
         
         if(ped.timestamp !== ultimoId) { document.getElementById('snd').play(); ultimoId = ped.timestamp; }
+        document.getElementById('vol-esp').innerText = `R$ ${parseFloat(ped.valor).toLocaleString('pt-BR')}`;
         
-        let rClass = ped.risco === 'ALTO' ? 'alerta-risco' : '';
-        let rText = ped.risco === 'ALTO' ? '<span class="text-red-500 font-black blink uppercase ml-4">[RISCO DETECTADO]</span>' : '';
+        let infoExtra = ped.tipo === 'SAQ' ? `PIX: ${ped.pix_tipo} • ${ped.pix_chave}` : `<a href="${ped.comprovante}" target="_blank" class="text-blue-500 underline uppercase">Ver Comprovante</a>`;
 
         l.innerHTML = `
-            <div class="admin-card p-10 flex justify-between items-center ${rClass}">
+            <div class="admin-card p-12 flex justify-between items-center ${ped.risco === 'ALTO' ? 'risco-alto' : ''}">
                 <div>
-                    <h3 class="font-black italic text-xl uppercase">${ped.user} ${rText}</h3>
-                    <p class="text-[10px] text-gray-500 uppercase">${ped.tipo} • ID: ${ped.timestamp}</p>
+                    <h3 class="font-black italic text-3xl uppercase text-white">${ped.user} ${ped.risco==='ALTO'?'<span class="text-red-500 ml-6 text-xs animate-pulse">[RISCO DETECTADO]</span>':''}</h3>
+                    <p class="text-gray-600 font-black uppercase text-xs mt-2 italic">${ped.tipo === 'SAQ' ? 'Pedido de Liquidação' : 'Pedido de Injeção'}</p>
+                    <div class="mt-4 text-[10px] text-[#80ff44] font-mono font-bold">${infoExtra}</div>
                 </div>
                 <div class="text-right">
-                    <h2 class="text-4xl font-black italic text-[#80ff44]">R$ ${ped.valor}</h2>
-                    <button onclick="decidir('APR')" class="mt-4 bg-[#80ff44] text-black px-10 py-3 rounded-xl font-black uppercase italic">Validar Operação</button>
+                    <p class="text-gray-700 text-[10px] font-black uppercase mb-1">Montante</p>
+                    <h2 class="text-5xl font-black text-[#80ff44] italic">R$ ${ped.valor}</h2>
+                    <div class="mt-6 space-x-4">
+                        <button onclick="decidir('APR')" class="bg-[#80ff44] text-black px-12 py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-white transition">Aprovar</button>
+                        <button onclick="decidir('REC')" class="text-red-500 font-black uppercase text-[10px] italic hover:underline">Recusar Transação</button>
+                    </div>
                 </div>
             </div>`;
     }
 
-    function decidir(acao) {
-        const ped = JSON.parse(localStorage.getItem('mf_ped'));
-        const cur = parseFloat(localStorage.getItem('bal_'+ped.user) || 0);
-        localStorage.setItem('bal_'+ped.user, (cur + parseFloat(ped.valor)).toFixed(2));
-        localStorage.removeItem('mf_ped'); renderPedidos();
+    function toggleLockdown() {
+        const s = localStorage.getItem('mf_lockdown') === 'true';
+        localStorage.setItem('mf_lockdown', !s);
     }
 
     setInterval(() => {
-        // RENDER LOGS COM CORES DE RISCO
-        const logs = JSON.parse(localStorage.getItem('mf_logs_master') || '[]');
+        let online = 0; let total = 0; let riscos = 0; const agora = Date.now();
+        for(let i=0; i<localStorage.length; i++) {
+            let k = localStorage.key(i);
+            if(k.startsWith('online_') && (agora - parseInt(localStorage.getItem(k)) < 10000)) online++;
+            if(k.startsWith('bal_')) total += parseFloat(localStorage.getItem(k));
+        }
+
+        const ped = JSON.parse(localStorage.getItem('mf_ped'));
+        if(ped && ped.risco === 'ALTO') riscos = 1;
+
+        document.getElementById('stat-online').innerText = online;
+        document.getElementById('stat-total').innerText = `R$ ${total.toLocaleString('pt-BR')}`;
+        document.getElementById('stat-risco').innerText = riscos;
+
+        const logs = JSON.parse(localStorage.getItem('mf_logs_auditoria') || []);
         document.getElementById('container-logs').innerHTML = logs.map(l => `
-            <div class="p-2 border-b border-white/5 ${l.nivel === 'CRÍTICO' ? 'log-critico' : (l.nivel === 'ALTO RISCO' ? 'log-alerta' : 'log-info')}">
+            <div class="log-line ${l.nivel === 'CRÍTICO' ? 'log-critico' : (l.nivel === 'AVISO' ? 'log-aviso' : '')}">
                 [${l.data}] [${l.nivel}] ${l.user}: ${l.acao}
             </div>`).join('');
 
         renderPedidos();
         const s = localStorage.getItem('mf_lockdown') === 'true';
-        document.getElementById('lockBtn').innerText = s ? "LIBERAR" : "LOCKDOWN";
+        document.getElementById('lockBtn').innerText = s ? "DESTRAVAR REDE" : "LOCKDOWN GLOBAL";
+        document.getElementById('lockBtn').style.borderColor = s ? "#80ff44" : "#ff4444";
+        document.getElementById('lockBtn').style.color = s ? "#80ff44" : "#ff4444";
     }, 1500);
+
+    document.getElementById('master-pix').value = localStorage.getItem('mf_pix') || '';
 </script>
 </body>
 </html>
