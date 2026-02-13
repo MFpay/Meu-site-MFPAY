@@ -1,157 +1,111 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MFpay | Merchant Dashboard</title>
+    <title>MFpay | Merchant Console</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; }
-        .sidebar { background: #080808; border-right: 1px solid #151515; height: 100vh; position: fixed; width: 260px; z-index: 50; }
-        .main-content { margin-left: 260px; padding: 40px; }
-        .gateway-card { background: #0d0d0d; border-radius: 20px; border: 1px solid #1a1a1a; padding: 40px; position: relative; overflow: hidden; }
-        .nav-btn { width: 100%; text-align: left; padding: 18px 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #444; border-left: 4px solid transparent; transition: 0.3s; }
-        .nav-btn.active { color: #80ff44; border-left-color: #80ff44; background: #0f0f0f; }
-        input { background: #000 !important; border: 1px solid #222 !important; border-radius: 12px; padding: 15px; width: 100%; color: #fff; outline: none; transition: 0.3s; }
-        input:focus { border-color: #80ff44 !important; }
-        .tab-content { display: none; } .tab-content.active { display: block; }
-        .glow { position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: #80ff44; filter: blur(100px); opacity: 0.1; }
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; font-size: 13px; margin:0; }
+        .sidebar { background: #050505; border-right: 1px solid #111; height: 100vh; position: fixed; width: 220px; padding: 30px 20px; }
+        .main { margin-left: 220px; padding: 40px; }
+        .stat-card { background: #080808; border: 1px solid #111; padding: 25px; border-radius: 12px; }
+        .nav-link { color: #555; display: block; padding: 12px 0; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; }
+        .nav-link.active { color: #80ff44; }
+        .btn-pix { background: #80ff44; color: #000; font-weight: 800; padding: 12px 25px; border-radius: 6px; font-size: 11px; cursor:pointer; border:none; }
+        .tab { display: none; } .tab.active { display: block; }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar py-10">
-        <div class="px-10 mb-12">
-            <h1 class="font-black italic text-2xl text-[#80ff44] tracking-tighter">MFPAY</h1>
-        </div>
-        <nav>
-            <button onclick="openTab('dash', this)" class="nav-btn active">Visão Geral</button>
-            <button onclick="openTab('extrato', this)" class="nav-btn">Extrato Cloud</button>
-            <button onclick="openTab('deposito', this)" class="nav-btn">Injetar Saldo</button>
-            <button onclick="openTab('saque', this)" class="nav-btn text-[#80ff44]">Sacar Lucro</button>
-            <button onclick="logout()" class="nav-btn mt-20 text-red-900">Encerrar Sessão</button>
+    <div class="sidebar">
+        <div class="mb-10 font-black italic text-[#80ff44] text-xl">MFPAY</div>
+        <nav class="space-y-2">
+            <a href="#" onclick="show('home')" class="nav-link active">Visão Geral</a>
+            <a href="#" onclick="show('cashin')" class="nav-link">Gerar Cash-in</a>
+            <a href="#" onclick="logout()" class="nav-link text-red-900 mt-20">Logout</a>
         </nav>
-    </aside>
+    </div>
 
-    <main class="main-content">
-        
-        <div id="dash" class="tab-content active space-y-8">
-            <header>
-                <p class="text-gray-500 font-bold text-xs uppercase tracking-widest">Bem-vindo de volta,</p>
-                <h2 id="merchant-name" class="text-4xl font-black italic uppercase">Merchant</h2>
-            </header>
+    <div class="main">
+        <div id="home" class="tab active">
+            <div class="flex justify-between items-end mb-10">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight">Operações: <span id="client-id" class="text-[#80ff44]">---</span></h2>
+                    <p class="text-gray-500 text-xs">Sincronizado com MFpay Cloud Gateway.</p>
+                </div>
+                <button onclick="show('cashin')" class="btn-pix italic">+ NOVO RECEBIMENTO</button>
+            </div>
 
-            <div class="gateway-card">
-                <div class="glow"></div>
-                <p class="text-gray-600 text-[10px] font-bold uppercase mb-2 tracking-widest">Saldo Disponível (BRL)</p>
-                <h2 id="balance-display" class="text-7xl font-black italic tracking-tighter text-white">R$ 0,00</h2>
-                <div class="mt-6 flex items-center text-[#80ff44] text-xs font-bold uppercase">
-                    <span class="mr-2">●</span> Sincronizado com MFpay Cloud
+            <div class="grid grid-cols-3 gap-6 mb-10">
+                <div class="stat-card border-l-4 border-[#80ff44]">
+                    <p class="text-gray-500 text-[10px] uppercase font-bold mb-1">Saldo Liquidável</p>
+                    <h3 id="saldo" class="text-3xl font-black">R$ 0,00</h3>
+                </div>
+                <div class="stat-card">
+                    <p class="text-gray-500 text-[10px] uppercase font-bold mb-1">Status do Gateway</p>
+                    <h3 class="text-3xl font-black text-[#80ff44] italic">ONLINE</h3>
                 </div>
             </div>
         </div>
 
-        <div id="deposito" class="tab-content max-w-xl mx-auto space-y-6 pt-10 text-center">
-            <h2 class="text-3xl font-black italic uppercase italic">Injetar Capital</h2>
-            <p class="text-gray-500 text-sm px-10">O saldo será liberado automaticamente após a compensação do PIX pela Cakto.</p>
-            <input type="number" id="val-dep" placeholder="Valor (ex: 100.00)">
-            <button onclick="gerarPixAutomatico()" class="w-full bg-[#80ff44] text-black font-black py-5 rounded-xl uppercase italic hover:scale-[1.02] transition-transform">Gerar Ordem de Pagamento</button>
+        <div id="cashin" class="tab max-w-md mx-auto py-20 text-center">
+            <h2 class="text-2xl font-black mb-8 italic uppercase">Checkout API Generator</h2>
+            <input type="number" id="val-in" class="bg-transparent border border-[#111] p-4 w-full rounded-lg mb-4 text-center text-2xl font-bold text-[#80ff44]" placeholder="0.00">
+            <button onclick="triggerCheckout()" class="btn-pix w-full py-5">GERAR ENDPOINT PIX</button>
         </div>
+    </div>
 
-        <div id="extrato" class="tab-content">
-            <h2 class="text-3xl font-black italic uppercase mb-8">Movimentações</h2>
-            <div class="gateway-card p-0 overflow-hidden">
-                <table class="w-full text-left text-xs">
-                    <thead>
-                        <tr class="bg-white/5 uppercase font-bold text-gray-500">
-                            <th class="p-6">ID</th>
-                            <th class="p-6">Operação</th>
-                            <th class="p-6">Valor</th>
-                            <th class="p-6 text-right">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="extrato-lista"></tbody>
-                </table>
-            </div>
-        </div>
+    <script>
+        const API = "https://sheetdb.io/api/v1/n1iq28pv28d009pq";
+        const user = localStorage.getItem('mf_user');
 
-        <div id="saque" class="tab-content max-w-xl mx-auto space-y-6 pt-10">
-            <h2 class="text-3xl font-black italic uppercase text-center">Resgatar Lucro</h2>
-            <input type="number" id="val-saq" placeholder="Valor do Saque">
-            <input type="text" id="pix-key" placeholder="Sua Chave PIX">
-            <button onclick="solicitarSaque()" class="w-full bg-white text-black font-black py-5 rounded-xl uppercase italic">Confirmar Retirada</button>
-        </div>
+        if(!user) window.location.href = 'index.html';
+        document.getElementById('client-id').innerText = user;
 
-    </main>
+        function show(id) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
 
-<script>
-    const API = "https://sheetdb.io/api/v1/n1iq28pv28d009pq";
-    const user = localStorage.getItem('mf_user');
-    
-    // Proteção: Se não logou, volta pro login
-    if(!user || localStorage.getItem('mf_logged') !== 'true') window.location.href = 'index.html';
+        async function load() {
+            // VERIFICA MANUTENÇÃO PELO EMAIL MESTRE
+            const m_res = await fetch(`${API}/search?merchant=zndohot@gmail.com&tipo=CONTROLE`);
+            const m_data = await m_res.json();
+            if(m_data.length > 0 && m_data[0].status === 'MANUTENCAO') {
+                document.body.innerHTML = "<div style='background:#000; height:100vh; color:#111; display:flex; align-items:center; justify-content:center; font-weight:900; font-style:italic; font-size:40px;'>MFPAY_SYSTEM_OFFLINE</div>";
+                return;
+            }
 
-    function openTab(tabId, btn) {
-        document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        btn.classList.add('active');
-        if(tabId === 'extrato') carregarHistorico();
-    }
+            // CARREGA SALDO
+            const res = await fetch(`${API}/search?merchant=${user}&status=Aprovado`);
+            const data = await res.json();
+            let bal = 0;
+            data.forEach(i => {
+                if(i.tipo === 'DEPOSITO') bal += parseFloat(i.valor);
+                if(i.tipo === 'SAQUE') bal -= parseFloat(i.valor);
+            });
+            document.getElementById('saldo').innerText = `R$ ${bal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        }
 
-    async function fetchSaldo() {
-        const res = await fetch(`${API}/search?merchant=${user}&status=Aprovado`);
-        const dados = await res.json();
-        let total = 0;
-        dados.forEach(i => {
-            if(i.tipo === 'DEPOSITO') total += parseFloat(i.valor);
-            if(i.tipo === 'SAQUE') total -= parseFloat(i.valor);
-        });
-        document.getElementById('balance-display').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-    }
+        async function triggerCheckout() {
+            const v = document.getElementById('val-in').value;
+            if(!v || v <= 0) return alert("Insira um valor.");
+            const tid = "TID" + Date.now();
+            
+            await fetch(API, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ data: [{ id: tid, merchant: user, tipo: 'DEPOSITO', valor: v, status: 'Pendente', data_hora: new Date().toLocaleString() }] })
+            });
+            
+            // Redireciona para o checkout da Cakto
+            window.location.href = `https://pay.cakto.com.br/checkout?client_id=L1rDTK0E0379elxfFSYvoTU5xQxBRBpZ5LA7KJZD&value=${v}&external_id=${tid}`;
+        }
 
-    async function gerarPixAutomatico() {
-        const valor = document.getElementById('val-dep').value;
-        const clientId = "L1rDTK0E0379elxfFSYvoTU5xQxBRBpZ5LA7KJZD"; // Sua Chave Cakto
-        const idTransacao = "MF" + Date.now();
+        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
 
-        if(!valor || valor <= 0) return alert("Valor inválido");
-
-        // Registra a intenção no banco
-        await fetch(API, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ data: [{ 
-                id: idTransacao, merchant: user, tipo: 'DEPOSITO', 
-                valor: valor, status: 'Pendente', data_hora: new Date().toLocaleString() 
-            }]})
-        });
-
-        // Redireciona para o checkout da MFpay (Powered by Cakto)
-        window.location.href = `https://pay.cakto.com.br/checkout?client_id=${clientId}&value=${valor}&external_id=${idTransacao}`;
-    }
-
-    async function carregarHistorico() {
-        const res = await fetch(`${API}/search?merchant=${user}`);
-        const dados = await res.json();
-        document.getElementById('extrato-lista').innerHTML = dados.reverse().map(i => `
-            <tr class="border-t border-white/5">
-                <td class="p-6 text-gray-500 font-mono">#${i.id}</td>
-                <td class="p-6 font-black uppercase text-[10px]">${i.tipo}</td>
-                <td class="p-6 font-bold">R$ ${i.valor}</td>
-                <td class="p-6 text-right font-black italic ${i.status === 'Aprovado' ? 'text-[#80ff44]' : 'text-yellow-500'}">${i.status}</td>
-            </tr>
-        `).join('');
-    }
-
-    function logout() {
-        localStorage.clear();
-        window.location.href = 'index.html';
-    }
-
-    document.getElementById('merchant-name').innerText = user;
-    setInterval(fetchSaldo, 5000); // Atualiza saldo a cada 5 segundos
-    fetchSaldo();
-</script>
+        load(); 
+        setInterval(load, 10000);
+    </script>
 </body>
 </html>
