@@ -2,137 +2,80 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>MFpay | MASTER COMMAND SOBERANO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MFpay | Master Admin Radar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; }
-        .sidebar { background: #080808; height: 100vh; position: fixed; width: 300px; border-right: 1px solid #111; }
-        .main-content { margin-left: 300px; padding: 40px; background: #050505; min-height: 100vh; }
-        .admin-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 24px; transition: 0.3s; }
-        .nav-btn { width: 100%; text-align: left; padding: 22px 40px; font-size: 11px; font-weight: 900; color: #333; text-transform: uppercase; letter-spacing: 2px; border:none; background:none; cursor:pointer; }
-        .nav-btn.active { color: #80ff44; border-right: 4px solid #80ff44; background: linear-gradient(90deg, transparent, rgba(128,255,68,0.02)); }
-        .risco-alto { border: 2px solid #ff4444 !important; background: rgba(255,0,0,0.05) !important; animation: blink 1s infinite; }
-        @keyframes blink { 50% { border-color: transparent; } }
-        .btn-aprovar { background: #80ff44; color: #000; font-weight: 900; }
+        body { background: #000; color: #fff; font-family: sans-serif; }
+        .stat-card { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 24px; rounded: 24px; }
     </style>
 </head>
-<body>
-
-    <aside class="sidebar py-12 flex flex-col justify-between">
-        <div class="px-12 mb-12"><h1 class="text-2xl font-black italic text-[#80ff44] uppercase tracking-widest">MFpay MASTER</h1></div>
-        <nav class="flex-1">
-            <button onclick="tab('fila')" id="btn-fila" class="nav-btn active">Fila de Pedidos</button>
-            <button onclick="tab('auditoria')" id="btn-aud" class="nav-btn">Auditoria Real-Time</button>
-        </nav>
-        <div class="px-8 text-[10px] text-gray-600 font-bold uppercase text-center">Sistema Blindado 200%</div>
-    </aside>
-
-    <main class="main-content">
-        <div id="fila" class="tab-sec">
-            <div class="grid grid-cols-3 gap-6 mb-12">
-                <div class="admin-card p-8 border-b-2 border-blue-500"><p class="text-[9px] text-gray-700 font-black uppercase mb-1">Volume Pendente</p><h3 id="vol-esp" class="text-4xl font-black text-blue-500">R$ 0,00</h3></div>
-                <div class="admin-card p-8 border-b-2 border-[#80ff44]"><p class="text-[9px] text-gray-700 font-black uppercase mb-1">Status Rede</p><h3 class="text-4xl font-black text-[#80ff44]">ONLINE</h3></div>
-                <div class="admin-card p-8 border-b-2 border-orange-500"><p class="text-[9px] text-gray-700 font-black uppercase mb-1">Operações na Fila</p><h3 id="stat-risco" class="text-3xl font-black text-orange-500">0</h3></div>
-            </div>
-            
-            <h2 class="text-3xl font-black italic uppercase mb-8">Fila de Operações Soberana</h2>
-            <div id="lista-pedidos" class="space-y-6">Carregando dados da rede...</div>
+<body class="p-6 md:p-12">
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="stat-card border-l-4 border-[#80ff44]">
+            <p class="text-[10px] opacity-30 uppercase font-black">Faturamento Rede</p>
+            <h2 id="total-faturado" class="text-3xl font-black italic text-[#80ff44]">R$ 0,00</h2>
         </div>
-
-        <div id="auditoria" class="tab-sec hidden">
-            <h2 class="text-3xl font-black italic uppercase mb-8 text-[#80ff44]">Histórico de Transações</h2>
-            <div id="lista-historico" class="space-y-2"></div>
+        <div class="stat-card border-l-4 border-blue-500">
+            <p class="text-[10px] opacity-30 uppercase font-black">Pendentes Saque</p>
+            <h2 id="total-saques" class="text-3xl font-black italic text-blue-500">0</h2>
         </div>
-    </main>
+        <div class="stat-card border-l-4 border-white/20">
+            <p class="text-[10px] opacity-30 uppercase font-black">Status de Rede</p>
+            <h2 class="text-3xl font-black italic">ESTÁVEL</h2>
+        </div>
+    </div>
 
-    <audio id="snd" src="https://www.myinstants.com/media/sounds/cash-register-purchase.mp3"></audio>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div id="fila" class="space-y-4"></div>
+        <div id="inbox-mensagens" class="space-y-4"></div>
+    </div>
 
-<script>
-    // URL DA SUA API SHEETDB (CONECTADA À PLANILHA GOOGLE)
-    const API_URL = 'https://sheetdb.io/api/v1/q28pv28d009pq';
-    let totalPendentesAntigo = 0;
+    <audio id="som-deposito" src="https://www.myinstants.com/media/sounds/cash-register-purchase.mp3"></audio>
+    <audio id="som-saque" src="https://www.myinstants.com/media/sounds/security-alert.mp3"></audio>
 
-    function tab(t) {
-        document.querySelectorAll('.tab-sec').forEach(x => x.classList.add('hidden'));
-        document.getElementById(t).classList.remove('hidden');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    }
+    <script>
+        const API = 'https://sheetdb.io/api/v1/q28pv28d009pq';
+        let totalRegistrosAntigo = 0;
 
-    async function carregarDados() {
-        try {
-            const res = await fetch(API_URL);
+        async function monitorar() {
+            const res = await fetch(API);
             const dados = await res.json();
-            
-            // FILTRAR PEDIDOS PENDENTES
             const pendentes = dados.filter(i => i.status === 'Pendente');
-            const aprovados = dados.filter(i => i.status === 'Aprovado');
 
-            // TOCAR SOM SE CHEGAR PEDIDO NOVO
-            if (pendentes.length > totalPendentesAntigo) {
-                document.getElementById('snd').play();
+            // --- LÓGICA SONORA ---
+            if(pendentes.length > totalRegistrosAntigo) {
+                const ultima = pendentes[pendentes.length - 1];
+                if(ultima.tipo === 'DEPOSITO') document.getElementById('som-deposito').play();
+                if(ultima.tipo === 'SAQUE') document.getElementById('som-saque').play();
             }
-            totalPendentesAntigo = pendentes.length;
+            totalRegistrosAntigo = pendentes.length;
 
-            // ATUALIZAR STATUS
-            document.getElementById('stat-risco').innerText = pendentes.length;
-            let somaPendentes = pendentes.reduce((acc, cur) => acc + parseFloat(cur.valor || 0), 0);
-            document.getElementById('vol-esp').innerText = `R$ ${somaPendentes.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            // --- ESTATÍSTICAS ---
+            const faturamento = dados.filter(i => i.status === 'Aprovado').reduce((acc, cur) => acc + parseFloat(cur.valor || 0), 0);
+            document.getElementById('total-faturado').innerText = `R$ ${faturamento.toLocaleString('pt-BR')}`;
+            document.getElementById('total-saques').innerText = pendentes.filter(i => i.tipo === 'SAQUE').length;
 
-            // RENDERIZAR FILA
-            const lista = document.getElementById('lista-pedidos');
-            if(pendentes.length === 0) {
-                lista.innerHTML = '<div class="admin-card p-20 text-center text-gray-800 font-black italic uppercase">Vigilância Estável: Nenhuma Operação Pendente</div>';
-            } else {
-                lista.innerHTML = pendentes.map(p => `
-                    <div class="admin-card p-10 flex justify-between items-center border-l-4 border-[#80ff44]">
-                        <div>
-                            <h3 class="font-black italic text-2xl uppercase text-white">${p.merchant || 'CLIENTE MF'}</h3>
-                            <p class="text-gray-600 font-black uppercase text-[10px] mt-1 italic tracking-widest">${p.tipo || 'SAQUE'}</p>
-                            <div class="mt-4 flex gap-4">
-                                <span class="text-[10px] text-[#80ff44] font-mono font-bold">PIX: ${p.pix}</span>
-                                <a href="${p.comprovante}" target="_blank" class="text-[10px] text-blue-500 underline font-bold uppercase tracking-tighter">Conferir Comprovante</a>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <h2 class="text-4xl font-black text-[#80ff44] italic mb-4">R$ ${parseFloat(p.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</h2>
-                            <button onclick="decidir('${p.id}', 'Aprovado')" class="bg-[#80ff44] text-black px-10 py-3 rounded-xl font-black uppercase italic shadow-lg hover:bg-white transition-all">EFETUAR PAGAMENTO</button>
-                        </div>
+            // Renderização da Fila...
+            document.getElementById('fila').innerHTML = pendentes.filter(i => i.tipo !== 'SUPORTE').map(p => `
+                <div class="stat-card flex justify-between items-center">
+                    <div>
+                        <p class="text-[9px] font-black text-[#80ff44] uppercase">${p.merchant}</p>
+                        <h3 class="text-2xl font-black italic">R$ ${p.valor}</h3>
                     </div>
-                `).join('');
-            }
-
-            // RENDERIZAR AUDITORIA
-            document.getElementById('lista-historico').innerHTML = aprovados.map(h => `
-                <div class="p-4 bg-[#0a0a0a] border-b border-white/5 flex justify-between text-[10px] font-mono">
-                    <span class="text-gray-500">[${h.data_hora || '---'}]</span>
-                    <span class="text-white">TRANS: ${h.id}</span>
-                    <span class="text-[#80ff44]">VALOR: R$ ${h.valor}</span>
-                    <span class="text-blue-500 font-bold uppercase">${h.status}</span>
+                    <button onclick="decidir('${p.id}', 'Aprovado')" class="bg-white text-black px-8 py-3 rounded-xl font-black italic text-xs uppercase hover:bg-[#80ff44] transition">Pagar</button>
                 </div>
             `).join('');
-
-        } catch (error) {
-            console.error("Erro na Rede Soberana:", error);
         }
-    }
 
-    async function decidir(id, acao) {
-        if(!confirm(`Deseja marcar a operação ${id} como ${acao}?`)) return;
+        async function decidir(id, st) {
+            await fetch(`${API}/id/${id}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ data: { status: st } }) });
+            monitorar();
+        }
 
-        // ATUALIZA NA PLANILHA GOOGLE VIA SHEETDB
-        await fetch(`${API_URL}/id/${id}`, {
-            method: 'PATCH',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ data: { status: acao } })
-        });
-
-        alert(`OPERACAO ${acao.toUpperCase()} COM SUCESSO!`);
-        carregarDados();
-    }
-
-    // ATUALIZAÇÃO AUTOMÁTICA A CADA 5 SEGUNDOS (SEM F5)
-    setInterval(carregarDados, 5000);
-    carregarDados();
-</script>
+        setInterval(monitorar, 8000);
+        monitorar();
+    </script>
 </body>
 </html>
