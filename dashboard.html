@@ -2,36 +2,38 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>MFpay | Dashboard</title>
+    <title>MFpay | Dashboard Console</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { background: #0b0e11; color: #fff; font-family: 'Inter', sans-serif; }
         .sidebar { background: #111418; border-right: 1px solid #1c2127; height: 100vh; position: fixed; width: 260px; padding: 40px 25px; }
         .main { margin-left: 260px; padding: 40px 60px; }
-        .card-mf { background: #161a1e; border: 1px solid #232a31; border-radius: 28px; padding: 30px; position: relative; }
+        .card-mf { background: #161a1e; border: 1px solid #232a31; border-radius: 24px; padding: 25px; position: relative; }
         .progress-bg { background: #1c2127; height: 10px; border-radius: 10px; overflow: hidden; }
         .progress-fill { background: linear-gradient(90deg, #00e38c, #00c479); height: 100%; transition: 1.5s ease-in-out; }
-        .badge-status { padding: 4px 10px; border-radius: 6px; font-size: 9px; font-weight: 900; text-transform: uppercase; }
-        .input-mf { background: #0b0e11; border: 1px solid #232a31; color: #fff; border-radius: 14px; padding: 16px; width: 100%; outline: none; }
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+        .input-mf { background: #0b0e11; border: 1px solid #232a31; color: #fff; border-radius: 12px; padding: 14px; width: 100%; outline: none; }
     </style>
 </head>
 <body>
 
     <aside class="sidebar flex flex-col">
-        <div class="flex items-center gap-3 mb-16 px-2">
+        <div class="flex items-center gap-3 mb-12 px-2">
             <i data-lucide="zap" class="text-[#00e38c] w-8 h-8"></i>
             <h1 class="text-[#00e38c] font-black italic text-2xl tracking-tighter">MFPAY</h1>
         </div>
         <nav class="flex-1 space-y-2">
             <div class="flex items-center gap-3 text-[#00e38c] bg-[#1c2127] p-4 rounded-xl text-xs font-bold cursor-pointer">
-                <i data-lucide="layout-dashboard" class="w-4 h-4"></i> CONSOLE FINANCEIRO
+                <i data-lucide="layout-dashboard" class="w-4 h-4"></i> FINANCEIRO
             </div>
-            <div id="mestre-box" class="hidden pt-6 border-t border-zinc-900 text-center">
-                <button onclick="toggleMt()" id="btn-mt" class="w-full py-2 border border-blue-900 text-blue-500 rounded-lg text-[9px] font-black uppercase">Rede Online</button>
+            <div id="mestre-box" class="hidden pt-6 border-t border-zinc-900">
+                <button onclick="toggleMt()" id="btn-mt" class="w-full py-2 border border-blue-900 text-blue-500 rounded-lg text-[10px] font-black">SISTEMA ONLINE</button>
             </div>
         </nav>
-        <div onclick="logout()" class="flex items-center gap-3 text-red-900 p-4 text-xs font-bold cursor-pointer mt-auto"><i data-lucide="log-out" class="w-4 h-4"></i> ENCERRAR SESSÃO</div>
+        <div onclick="logout()" class="flex items-center gap-3 text-red-900 p-4 text-xs font-bold cursor-pointer mt-auto">
+            <i data-lucide="log-out" class="w-4 h-4"></i> SAIR
+        </div>
     </aside>
 
     <main class="main">
@@ -48,49 +50,40 @@
 
         <div class="grid grid-cols-2 gap-8 mb-8">
             <div class="card-mf border-l-4 border-l-[#00e38c]">
-                <div class="flex justify-between items-start mb-4">
-                    <p class="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Saldo Protegido</p>
-                    <i data-lucide="lock" class="text-zinc-800 w-4 h-4"></i>
-                </div>
-                <h3 id="saldo-txt" class="text-5xl font-black italic tracking-tighter">R$ 0,00</h3>
+                <p class="text-zinc-500 text-[10px] font-black uppercase mb-2">Saldo Protegido <i data-lucide="lock" class="inline w-3 h-3 ml-1"></i></p>
+                <h3 id="saldo-txt" class="text-4xl font-black italic tracking-tighter">R$ 0,00</h3>
             </div>
-            <div id="premio-card" class="card-mf opacity-20 grayscale flex items-center gap-5 transition-all duration-1000">
-                <div class="p-4 bg-yellow-500/10 rounded-2xl"><i data-lucide="award" class="text-yellow-500 w-8 h-8"></i></div>
+            <div id="premio-card" class="card-mf border-zinc-800 flex items-center gap-4 opacity-20 grayscale transition-all duration-700">
+                <div class="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                    <i data-lucide="award" class="text-yellow-500 w-7 h-7"></i>
+                </div>
                 <div>
-                    <h4 class="text-xs font-black italic uppercase">Level 10K</h4>
-                    <p id="premio-status" class="text-[9px] text-zinc-600 font-black uppercase">Recompensa Bloqueada</p>
+                    <h4 class="text-xs font-black italic">PRÊMIO 10K</h4>
+                    <p class="text-[9px] text-zinc-500 uppercase font-black" id="premio-status">Bloqueado</p>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-8 mb-12">
+        <div class="grid grid-cols-2 gap-10 mb-10">
             <div class="card-mf bg-[#111418]">
-                <h4 class="text-[10px] font-black text-[#00e38c] mb-6 uppercase tracking-widest italic">Lançar Crédito</h4>
-                <input type="number" id="v-in" placeholder="0.00" class="input-mf text-2xl font-black mb-4">
-                <button onclick="operar('DEPOSITO')" class="w-full bg-[#00e38c] text-black font-black py-4 rounded-xl uppercase text-[10px] italic">Confirmar Aporte</button>
+                <h4 class="text-[10px] font-black text-[#00e38c] mb-6 uppercase italic">Lançar Crédito</h4>
+                <input type="number" id="v-in" placeholder="Valor R$" class="input-mf text-2xl font-black mb-6">
+                <button onclick="operar('DEPOSITO')" class="w-full bg-[#00e38c] text-black font-black py-4 rounded-xl uppercase text-[10px] italic shadow-lg shadow-[#00e38c]/10">Confirmar Aporte</button>
             </div>
             <div class="card-mf bg-[#111418]">
-                <h4 class="text-[10px] font-black text-red-500 mb-6 uppercase tracking-widest italic">Solicitar Resgate</h4>
-                <input type="text" id="pix-key" placeholder="Chave Pix" class="input-mf mb-2">
-                <input type="number" id="v-out" placeholder="0.00" class="input-mf mb-4">
+                <h4 class="text-[10px] font-black text-red-500 mb-6 uppercase italic">Solicitar Resgate</h4>
+                <input type="text" id="pix-key" placeholder="Chave Pix" class="input-mf mb-4">
+                <input type="number" id="v-out" placeholder="Valor R$" class="input-mf mb-6">
                 <button onclick="operar('SAQUE')" class="w-full bg-zinc-800 text-white font-black py-4 rounded-xl uppercase text-[10px] italic">Solicitar Saque</button>
             </div>
         </div>
 
-        <div class="card-mf bg-transparent border-zinc-900 p-0 overflow-hidden">
-            <div class="p-6 border-b border-zinc-900 flex justify-between items-center">
-                <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Últimas Atividades</h4>
-                <i data-lucide="list" class="w-4 h-4 text-zinc-800"></i>
-            </div>
+        <div class="card-mf border-zinc-900 p-0 overflow-hidden">
+            <div class="p-5 border-b border-zinc-900"><h4 class="text-[10px] font-black uppercase text-zinc-500">Últimas Atividades</h4></div>
             <table class="w-full text-left text-xs">
-                <tbody id="lista-transacoes" class="divide-y divide-zinc-900/50">
-                    </tbody>
+                <tbody id="lista-transacoes" class="divide-y divide-zinc-900/50"></tbody>
             </table>
         </div>
-
-        <footer class="mt-20 border-t border-zinc-900 pt-10 pb-10 text-center opacity-30">
-            <p class="text-[9px] font-black text-zinc-600 uppercase tracking-[0.4em]">MFPAY SECURE NETWORK v2.6 | SSL ENCRYPTED</p>
-        </footer>
     </main>
 
 <script>
@@ -102,17 +95,16 @@
     if(!user) window.location.href = 'index.html';
     if(user === MESTRE) document.getElementById('mestre-box').classList.remove('hidden');
 
-    async function sync() {
+    async function atualizar() {
         try {
             const res = await fetch(`${API}/search?merchant=${user}`);
             const data = await res.json();
-            let saldo = 0, fat = 0;
-            let html = "";
+            let saldo = 0, fat = 0, html = "";
 
             data.reverse().slice(0, 5).forEach(i => {
                 const isOut = i.tipo === 'SAQUE';
                 const statusColor = i.status === 'Aprovado' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500';
-                html += `<tr class="hover:bg-white/5 transition"><td class="p-5 font-bold">${i.tipo}</td><td class="p-5 text-zinc-500">${i.data_hora}</td><td class="p-5 font-black ${isOut?'text-red-500':'text-green-500'}">R$ ${i.valor}</td><td class="p-5 text-right"><span class="badge-status ${statusColor}">${i.status}</span></td></tr>`;
+                html += `<tr><td class="p-4 font-bold uppercase">${i.tipo}</td><td class="p-4 text-zinc-500">${i.data_hora}</td><td class="p-4 font-black ${isOut?'text-red-500':'text-green-500'}">R$ ${i.valor}</td><td class="p-4 text-right"><span class="badge ${statusColor}">${i.status}</span></td></tr>`;
                 
                 if(i.status === 'Aprovado') {
                     const v = parseFloat(i.valor);
@@ -130,29 +122,34 @@
             document.getElementById('perc-txt').innerText = Math.floor(p) + "%";
 
             if(fat >= 10000) {
-                const c = document.getElementById('premio-card');
-                c.classList.remove('opacity-20', 'grayscale');
-                c.classList.add('border-yellow-500/30', 'bg-yellow-500/5');
+                const card = document.getElementById('premio-card');
+                card.classList.remove('grayscale', 'opacity-20');
+                card.classList.add('border-yellow-500/40', 'bg-yellow-500/5');
                 document.getElementById('premio-status').innerText = "CONQUISTADO";
                 document.getElementById('premio-status').style.color = "#eab308";
             }
         } catch(e) {}
     }
 
-    async function operar(t) {
-        const v = t === 'DEPOSITO' ? document.getElementById('v-in').value : document.getElementById('v-out').value;
-        const pix = t === 'SAQUE' ? document.getElementById('pix-key').value : "";
-        if(!v || v <= 0) return alert("Valor Inválido");
+    async function operar(tipo) {
+        const val = tipo === 'DEPOSITO' ? document.getElementById('v-in').value : document.getElementById('v-out').value;
+        const pix = tipo === 'SAQUE' ? document.getElementById('pix-key').value : "";
+        if(!val || val <= 0) return alert("Valor inválido");
+
         await fetch(API, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ data: [{ id: t+"-"+Date.now(), merchant: user, tipo: t, valor: v, status: t==='DEPOSITO'?'Aprovado':'Pendente', data_hora: new Date().toLocaleString(), observacao: pix }]})
+            body: JSON.stringify({ data: [{ 
+                id: tipo + "-" + Date.now(), merchant: user, tipo: tipo, valor: val, 
+                status: tipo === 'DEPOSITO' ? 'Aprovado' : 'Pendente', 
+                data_hora: new Date().toLocaleString(), observacao: pix 
+            }]})
         });
         location.reload();
     }
 
     function logout() { localStorage.clear(); window.location.href = 'index.html'; }
-    sync(); setInterval(sync, 15000);
+    atualizar(); setInterval(atualizar, 15000);
 </script>
 </body>
 </html>
