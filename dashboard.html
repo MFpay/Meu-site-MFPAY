@@ -2,22 +2,21 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>MF PAY | Gateway de Elite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MF PAY | DASHBOARD ELITE</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
         .sidebar { background: #0a0a0a; border-right: 1px solid #151515; height: 100vh; position: fixed; width: 260px; z-index: 50; }
-        .main-content { margin-left: 260px; padding: 40px; min-height: 100vh; background: radial-gradient(circle at top right, #0a0a0a, #050505); }
+        .main-content { margin-left: 260px; padding: 40px; min-height: 100vh; }
         .gateway-card { background: #0f0f0f; border-radius: 24px; border: 1px solid #1a1a1a; transition: 0.3s; }
-        .gateway-card:hover { border-color: #222; }
-        .nav-btn { width: 100%; text-align: left; padding: 18px 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #444; transition: 0.3s; border-left: 4px solid transparent; italic; }
+        .nav-btn { width: 100%; text-align: left; padding: 18px 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #444; border-left: 4px solid transparent; italic; }
         .nav-btn.active { color: #80ff44; background: #0f0f0f; border-left-color: #80ff44; }
-        .neon-text { color: #80ff44; text-shadow: 0 0 15px rgba(128,255,68,0.3); }
-        .progress-fill { background: #80ff44; height: 100%; transition: width 1.5s cubic-bezier(0.19, 1, 0.22, 1); box-shadow: 0 0 20px rgba(128,255,68,0.4); }
-        input, select { background: #000 !important; border: 1px solid #1a1a1a !important; border-radius: 14px !important; color: #fff; outline: none; padding: 18px; width: 100%; font-weight: 600; }
+        .progress-fill { background: #80ff44; height: 100%; transition: width 1.5s ease; box-shadow: 0 0 20px rgba(128,255,68,0.4); }
+        input { background: #000 !important; border: 1px solid #1a1a1a !important; border-radius: 14px !important; color: #fff; padding: 18px; width: 100%; outline: none; }
         input:focus { border-color: #80ff44 !important; }
-        .tab-content { display: none; animation: fadeIn 0.5s ease; }
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         #lock-screen { background: #000; position: fixed; inset: 0; z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
@@ -27,28 +26,23 @@
 
     <div id="lock-screen">
         <div class="w-12 h-12 border-4 border-[#80ff44] border-t-transparent rounded-full animate-spin mb-6"></div>
-        <h2 class="text-[#80ff44] font-black text-xs uppercase italic tracking-[0.4em]">Protocolo de Segurança Ativado</h2>
-        <p class="text-gray-600 text-[10px] mt-2 uppercase font-bold tracking-widest">Aguarde a liberação do Master</p>
+        <h2 class="text-[#80ff44] font-black text-xs uppercase italic tracking-widest text-center">Protocolo de Segurança Ativado<br><span class="text-white text-[8px]">Aguarde a liberação do Master</span></h2>
     </div>
 
     <aside class="sidebar flex flex-col justify-between py-12">
         <div>
-            <div class="px-10 mb-16">
-                <h1 class="font-black italic text-2xl uppercase tracking-tighter">MF <span class="text-gray-700 font-light">PAY</span></h1>
-            </div>
+            <div class="px-10 mb-16"><h1 class="font-black italic text-2xl uppercase tracking-tighter">MF <span class="text-gray-700">PAY</span></h1></div>
             <nav>
-                <button onclick="openTab(event, 'dash')" class="nav-btn active italic">Dashboard</button>
-                <button onclick="openTab(event, 'extrato')" class="nav-btn italic">Extrato Master</button>
-                <button onclick="openTab(event, 'deposito')" class="nav-btn italic">Injetar Capital</button>
-                <button onclick="openTab(event, 'saque')" class="nav-btn italic">Liquidação</button>
-                <button onclick="openTab(event, 'seguranca')" class="nav-btn italic">Logs & Conta</button>
+                <button onclick="openTab(event, 'dash')" class="nav-btn active">Dashboard</button>
+                <button onclick="openTab(event, 'extrato')" class="nav-btn">Extrato</button>
+                <button onclick="openTab(event, 'deposito')" class="nav-btn">Injetar Capital</button>
+                <button onclick="openTab(event, 'saque')" class="nav-btn">Liquidação</button>
+                <button onclick="openTab(event, 'seguranca')" class="nav-btn">Segurança & PIN</button>
             </nav>
         </div>
-        <div class="px-10">
-            <div class="bg-[#80ff44]/5 p-4 rounded-xl border border-[#80ff44]/10 text-center">
-                <p class="text-[9px] font-black text-gray-500 uppercase mb-1">Status da Rede</p>
-                <p class="text-[10px] font-black text-[#80ff44] uppercase italic">Operacional</p>
-            </div>
+        <div class="px-10 py-4 bg-white/5 mx-6 rounded-xl text-center">
+            <p class="text-[9px] font-black text-gray-500 uppercase mb-1">Status da Conta</p>
+            <p id="tier-name" class="text-[10px] font-black text-[#80ff44] uppercase italic">Soldado</p>
         </div>
     </aside>
 
@@ -56,46 +50,41 @@
         <div id="dash" class="tab-content active space-y-10">
             <div class="flex justify-between items-end">
                 <div>
-                    <h2 class="text-4xl font-black italic uppercase">Visão de Mercado</h2>
-                    <p class="text-gray-600 text-[10px] font-bold uppercase mt-1 italic tracking-widest">Merchant ID: <span id="display-user">---</span></p>
+                    <h2 class="text-4xl font-black italic uppercase">Visão Geral</h2>
+                    <p class="text-[10px] text-gray-600 font-bold uppercase mt-1 italic tracking-widest" id="display-user">Merchant: ---</p>
                 </div>
-                <div class="flex gap-3">
-                    <span class="bg-blue-500/10 text-blue-400 text-[9px] font-black px-4 py-2 rounded-full border border-blue-500/20 italic uppercase tracking-widest">✔ Verificado</span>
-                    <span id="tier-badge" class="bg-[#80ff44] text-black px-4 py-2 rounded-full text-[9px] font-black uppercase italic tracking-tighter">Tier: Soldado</span>
-                </div>
+                <span class="bg-blue-500/10 text-blue-400 text-[9px] font-black px-4 py-2 rounded-full border border-blue-500/20 uppercase italic">✔ Verificado</span>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="gateway-card p-12 lg:col-span-2 flex flex-col justify-between border-b-4 border-b-[#80ff44]">
-                    <div>
-                        <p class="text-gray-600 text-[10px] font-bold uppercase italic tracking-widest mb-2">Capital em Custódia</p>
-                        <h2 id="bal" class="text-8xl font-black italic tracking-tighter">R$ 0,00</h2>
-                    </div>
+                <div class="gateway-card p-12 lg:col-span-2 border-b-4 border-b-[#80ff44]">
+                    <p class="text-gray-600 text-[10px] font-bold uppercase mb-2">Capital em Custódia</p>
+                    <h2 id="bal" class="text-7xl font-black italic tracking-tighter">R$ 0,00</h2>
                 </div>
                 <div class="gateway-card p-10 flex flex-col justify-center text-center">
-                    <p class="text-gray-600 text-[10px] font-bold uppercase mb-4 italic">Performance Global</p>
-                    <span class="text-6xl font-black neon-text italic" id="prog-val">0%</span>
-                    <div class="w-full bg-black h-2 rounded-full mt-6 overflow-hidden border border-white/5">
+                    <p class="text-gray-600 text-[10px] font-bold uppercase mb-4 italic">Performance</p>
+                    <span class="text-5xl font-black text-[#80ff44] italic" id="prog-val">0%</span>
+                    <div class="w-full bg-black h-2 rounded-full mt-6 border border-white/5 overflow-hidden">
                         <div id="faturamento-bar" class="progress-fill" style="width: 0%"></div>
                     </div>
-                    <p class="text-[9px] text-gray-700 mt-6 uppercase font-bold italic tracking-widest" id="taxa-display">Taxa de Liquidação: 5.0%</p>
+                    <p id="taxa-display" class="text-[9px] text-gray-700 mt-4 uppercase font-bold italic">Taxa de Saque: 5.0%</p>
                 </div>
+            </div>
+
+            <div class="gateway-card p-8">
+                <h3 class="text-xs font-black uppercase italic text-gray-500 mb-4">Logs de Atividade Recente</h3>
+                <div id="lista-logs" class="space-y-3 text-[10px] font-bold italic text-gray-700"></div>
             </div>
         </div>
 
         <div id="extrato" class="tab-content space-y-6">
-            <h2 class="text-4xl font-black italic uppercase">Histórico de Movimentações</h2>
+            <h2 class="text-4xl font-black italic uppercase">Movimentações</h2>
             <div class="gateway-card overflow-hidden">
-                <table class="w-full text-left">
+                <table class="w-full text-left text-xs">
                     <thead class="bg-black/50 text-[10px] font-black uppercase text-gray-600 tracking-widest">
-                        <tr>
-                            <th class="p-6">Data</th>
-                            <th class="p-6">Tipo</th>
-                            <th class="p-6">Valor</th>
-                            <th class="p-6 text-right">Status da Operação</th>
-                        </tr>
+                        <tr><th class="p-6">Data</th><th class="p-6">Tipo</th><th class="p-6">Valor</th><th class="p-6 text-right">Status</th></tr>
                     </thead>
-                    <tbody id="lista-extrato" class="text-xs font-bold italic"></tbody>
+                    <tbody id="lista-extrato"></tbody>
                 </table>
             </div>
         </div>
@@ -103,138 +92,109 @@
         <div id="deposito" class="tab-content max-w-2xl mx-auto space-y-8">
             <h2 class="text-4xl font-black italic uppercase text-center">Injetar Capital</h2>
             <div class="gateway-card p-12 space-y-8">
-                <div>
-                    <label class="text-[10px] font-black text-gray-600 uppercase italic mb-3 block">Montante da Injeção</label>
-                    <input type="number" id="val-dep" placeholder="R$ 0,00" class="text-4xl font-black">
+                <input type="number" id="val-dep" placeholder="R$ 0,00" class="text-3xl font-black">
+                <input type="text" id="link-comp" placeholder="Link do Comprovante (Obrigatório)" class="italic">
+                <div class="bg-black p-4 rounded-xl border border-white/5 flex justify-between items-center text-xs">
+                    <span id="pix-admin-key" class="text-[#80ff44] font-mono italic">---</span>
+                    <button onclick="navigator.clipboard.writeText(document.getElementById('pix-admin-key').innerText); alert('Copiado!')" class="text-gray-600 font-black">COPIAR PIX</button>
                 </div>
-                <div>
-                    <label class="text-[10px] font-black text-gray-600 uppercase italic mb-3 block">Link do Comprovante (Obrigatório)</label>
-                    <input type="text" id="link-comp" placeholder="URL da imagem ou PDF" class="italic">
-                </div>
-                <div class="bg-black p-6 rounded-2xl border border-white/5 flex justify-between items-center">
-                    <div>
-                        <p class="text-[9px] font-black text-gray-600 uppercase italic mb-1">Chave Pix Master para Envio</p>
-                        <span id="pix-admin-key" class="neon-text font-mono text-sm italic font-black">---</span>
-                    </div>
-                    <button onclick="navigator.clipboard.writeText(document.getElementById('pix-admin-key').innerText)" class="bg-[#80ff44]/10 text-[#80ff44] text-[9px] font-black px-4 py-2 rounded-lg uppercase italic border border-[#80ff44]/20">Copiar</button>
-                </div>
-                <button onclick="enviarOperacao('DEP')" class="w-full bg-[#80ff44] text-black font-black py-6 rounded-2xl text-[11px] uppercase italic tracking-[0.2em] shadow-[0_0_30px_rgba(128,255,68,0.2)] hover:scale-[1.02] transition">Efetivar Solicitação</button>
+                <button onclick="enviarOperacao('DEP')" class="w-full bg-[#80ff44] text-black font-black py-6 rounded-2xl text-[11px] uppercase italic tracking-widest shadow-lg">Efetivar Solicitação</button>
             </div>
         </div>
 
         <div id="saque" class="tab-content max-w-2xl mx-auto space-y-8">
-            <h2 class="text-4xl font-black italic uppercase text-center">Solicitar Liquidação</h2>
+            <h2 class="text-4xl font-black italic uppercase text-center">Liquidação</h2>
             <div class="gateway-card p-12 space-y-8">
-                <div>
-                    <label class="text-[10px] font-black text-gray-600 uppercase italic mb-3 block">Valor para Resgate</label>
-                    <input type="number" id="val-saq" placeholder="R$ 0,00" class="text-4xl font-black">
+                <input type="number" id="val-saq" placeholder="R$ 0,00" class="text-3xl font-black">
+                <div class="space-y-2">
+                    <p class="text-[10px] font-black text-gray-600 uppercase italic text-center">Confirmação de Identidade (PIN)</p>
+                    <input type="password" id="pin-saque" maxlength="4" placeholder="****" class="text-center text-3xl tracking-[1em] font-black border-[#80ff44]/20">
                 </div>
-                <div id="chave-salva-box" class="bg-[#80ff44]/5 border border-[#80ff44]/20 p-6 rounded-2xl hidden flex justify-between items-center">
-                    <div>
-                        <p class="text-[9px] font-black text-gray-600 uppercase italic mb-1">Conta de Destino Salva</p>
-                        <p id="chave-display" class="neon-text font-black italic text-lg uppercase tracking-tight">---</p>
-                    </div>
-                    <button onclick="localStorage.removeItem('pix_'+user); location.reload();" class="text-[9px] font-black text-red-500 uppercase italic">Trocar</button>
-                </div>
-                <div id="inputs-pix" class="grid grid-cols-1 gap-4">
-                    <input type="text" id="c-pix-cli" placeholder="Informe sua Chave Pix para Receber">
-                </div>
-                <button onclick="enviarOperacao('SAQ')" class="w-full bg-[#80ff44] text-black font-black py-6 rounded-2xl text-[11px] uppercase italic tracking-[0.2em] shadow-2xl">Confirmar Liquidação</button>
+                <button onclick="enviarOperacao('SAQ')" class="w-full bg-[#80ff44] text-black font-black py-6 rounded-2xl text-[11px] uppercase italic tracking-widest shadow-lg">Autorizar Liquidação</button>
             </div>
         </div>
 
-        <div id="seguranca" class="tab-content space-y-8">
-            <h2 class="text-4xl font-black italic uppercase">Segurança & Auditoria</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="gateway-card p-10 space-y-6">
-                    <h3 class="text-xs font-black uppercase italic text-gray-500 tracking-widest">Logs de Atividade Recente</h3>
-                    <div id="lista-logs" class="space-y-4 text-[10px] font-bold italic text-gray-600"></div>
-                </div>
-                <div class="gateway-card p-10 space-y-6">
-                    <h3 class="text-xs font-black uppercase italic text-gray-500 tracking-widest">Configuração de Conta</h3>
-                    <div>
-                        <label class="text-[9px] font-bold text-gray-600 uppercase mb-2 block">Salvar Chave Pix Padrão</label>
-                        <input type="text" id="pix-config" placeholder="Sua chave principal">
-                        <button onclick="salvarMinhaChave()" class="w-full mt-4 bg-white text-black py-4 rounded-xl text-[10px] font-black uppercase italic">Vincular Conta</button>
-                    </div>
-                    <button onclick="localStorage.removeItem('currentUser'); location.reload();" class="w-full border border-red-500/30 text-red-500 py-4 rounded-xl text-[9px] font-black uppercase italic">Encerrar Sessão</button>
-                </div>
+        <div id="seguranca" class="tab-content max-w-md mx-auto space-y-8">
+            <h2 class="text-4xl font-black italic uppercase text-center">Segurança</h2>
+            <div class="gateway-card p-12 space-y-8 text-center border-t-4 border-t-blue-500">
+                <p class="text-xs text-gray-500 italic">Defina seu PIN de 4 dígitos para proteger seus saques.</p>
+                <input type="password" id="novo-pin" maxlength="4" placeholder="Novo PIN" class="text-center text-2xl tracking-[0.5em] font-black">
+                <button onclick="salvarPin()" class="w-full bg-white text-black font-black py-4 rounded-xl uppercase italic">Atualizar PIN de Saque</button>
             </div>
         </div>
     </main>
 
 <script>
-    const user = localStorage.getItem('currentUser') || 'merchant_vip_01';
-    document.getElementById('display-user').innerText = user;
+    const user = localStorage.getItem('currentUser') || 'nando_merchant';
+    document.getElementById('display-user').innerText = `Merchant: ${user}`;
 
     function addLog(msg) {
         let logs = JSON.parse(localStorage.getItem('logs_'+user) || '[]');
-        logs.unshift({ data: new Date().toLocaleTimeString(), msg: msg });
-        localStorage.setItem('logs_'+user, JSON.stringify(logs.slice(0, 8)));
+        logs.unshift({ time: new Date().toLocaleTimeString(), msg: msg });
+        localStorage.setItem('logs_'+user, JSON.stringify(logs.slice(0, 5)));
+        renderLogs();
     }
 
     function renderLogs() {
-        const container = document.getElementById('lista-logs');
-        const logs = JSON.parse(localStorage.getItem('logs_'+user) || '[]');
-        container.innerHTML = logs.map(l => `<div class="border-b border-white/5 pb-2 flex justify-between"><span>> ${l.msg}</span><span class="text-gray-800">${l.data}</span></div>`).join('');
+        const l = JSON.parse(localStorage.getItem('logs_'+user) || '[]');
+        document.getElementById('lista-logs').innerHTML = l.map(x => `<div>> [${x.time}] ${x.msg}</div>`).join('');
     }
 
-    function openTab(evt, tabName) {
+    function openTab(evt, t) {
         const tabs = document.getElementsByClassName("tab-content");
-        for (let i = 0; i < tabs.length; i++) tabs[i].style.display = "none";
+        for (let i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
         const btns = document.getElementsByClassName("nav-btn");
-        for (let i = 0; i < btns.length; i++) btns[i].className = btns[i].className.replace(" active", "");
-        document.getElementById(tabName).style.display = "block";
-        if(evt) evt.currentTarget.className += " active";
-        if(tabName === 'extrato') renderExtrato();
-        if(tabName === 'seguranca') renderLogs();
+        for (let i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+        document.getElementById(t).classList.add('active');
+        if(evt) evt.currentTarget.classList.add('active');
+        if(t === 'extrato') renderExtrato();
     }
 
-    function salvarMinhaChave() {
-        const v = document.getElementById('pix-config').value;
-        if(v) {
-            localStorage.setItem('pix_'+user, v);
-            addLog("Nova conta bancária vinculada ao perfil.");
-            alert("CONTA VINCULADA!");
-            location.reload();
-        }
+    function salvarPin() {
+        const p = document.getElementById('novo-pin').value;
+        if(p.length === 4) {
+            localStorage.setItem('pin_'+user, p);
+            addLog("PIN de segurança atualizado.");
+            alert("PIN SALVO!");
+        } else { alert("USE 4 DÍGITOS!"); }
     }
 
     function renderExtrato() {
-        const lista = document.getElementById('lista-extrato');
         const hist = JSON.parse(localStorage.getItem('hist_'+user) || '[]');
-        lista.innerHTML = hist.length ? '' : '<tr><td colspan="4" class="p-20 text-center text-gray-800 uppercase italic tracking-widest">Sem movimentações registradas</td></tr>';
-        hist.reverse().forEach(h => {
-            const color = h.status === 'Aprovado' ? 'text-[#80ff44]' : h.status === 'Recusado' ? 'text-red-500' : 'text-yellow-500';
-            lista.innerHTML += `<tr class="border-t border-white/5">
-                <td class="p-6 text-gray-600 font-medium">${h.data}</td>
-                <td class="p-6 uppercase tracking-tighter">${h.tipo === 'DEP' ? 'Injeção (In)' : 'Liquidação (Out)'}</td>
-                <td class="p-6 font-black italic">R$ ${parseFloat(h.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                <td class="p-6 text-right ${color} uppercase tracking-widest text-[9px]">${h.status}</td>
-            </tr>`;
-        });
+        document.getElementById('lista-extrato').innerHTML = hist.reverse().map(h => `
+            <tr class="border-t border-white/5">
+                <td class="p-6 text-gray-500">${h.data}</td>
+                <td class="p-6 uppercase font-black">${h.tipo}</td>
+                <td class="p-6 italic font-black">R$ ${parseFloat(h.valor).toLocaleString('pt-BR')}</td>
+                <td class="p-6 text-right uppercase text-[9px] font-black ${h.status === 'Aprovado' ? 'text-[#80ff44]' : 'text-yellow-500'}">${h.status}</td>
+            </tr>
+        `).join('');
     }
 
     function enviarOperacao(t) {
         const v = (t === 'DEP') ? document.getElementById('val-dep').value : document.getElementById('val-saq').value;
-        const comp = document.getElementById('link-comp').value;
-        const cp = localStorage.getItem('pix_'+user) || document.getElementById('c-pix-cli').value;
+        const pinDigitado = document.getElementById('pin-saque').value;
+        const pinSalvo = localStorage.getItem('pin_'+user);
 
         if(!v || v <= 0) return alert("VALOR INVÁLIDO");
-        if(t === 'DEP' && !comp) return alert("INSIRA O LINK DO COMPROVANTE");
-        if(t === 'SAQ' && !cp) return alert("INFORME A CHAVE PIX");
-        
-        const currentBal = parseFloat(localStorage.getItem('bal_'+user) || 0);
-        if(t === 'SAQ' && v > currentBal) return alert("SALDO INSUFICIENTE PARA LIQUIDAÇÃO");
+        if(t === 'SAQ' && pinDigitado !== pinSalvo) return alert("PIN INCORRETO!");
+        if(t === 'DEP' && !document.getElementById('link-comp').value) return alert("LINK DO COMPROVANTE OBRIGATÓRIO!");
 
-        localStorage.setItem('mf_ped', JSON.stringify({ tipo: t, valor: v, user: user, comprovante: comp, cli_pix: cp, timestamp: Date.now() }));
+        const currentBal = parseFloat(localStorage.getItem('bal_'+user) || 0);
+        if(t === 'SAQ' && v > currentBal) return alert("SALDO INSUFICIENTE");
+
+        localStorage.setItem('mf_ped', JSON.stringify({ 
+            tipo: t, valor: v, user: user, 
+            comprovante: document.getElementById('link-comp').value, 
+            timestamp: Date.now() 
+        }));
         
         const hist = JSON.parse(localStorage.getItem('hist_'+user) || '[]');
-        hist.push({ data: new Date().toLocaleString('pt-BR'), tipo: t, valor: v, status: 'Pendente' });
+        hist.push({ data: new Date().toLocaleDateString(), tipo: t, valor: v, status: 'Pendente' });
         localStorage.setItem('hist_'+user, JSON.stringify(hist));
         
-        addLog(`Transação de R$ ${v} enviada para análise Master.`);
-        alert("OPERAÇÃO REGISTRADA COM SUCESSO!");
+        addLog(`Solicitação de ${t === 'DEP' ? 'Injeção' : 'Saque'} enviada.`);
+        alert("ENVIADO AO MASTER!");
         location.reload();
     }
 
@@ -244,26 +204,18 @@
         
         const s = parseFloat(localStorage.getItem('bal_'+user) || 0);
         document.getElementById('bal').innerText = `R$ ${s.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
-        document.getElementById('pix-admin-key').innerText = localStorage.getItem('mf_pix') || 'DEFININDO...';
+        document.getElementById('pix-admin-key').innerText = localStorage.getItem('mf_pix') || 'DEFINA NO ADMIN';
 
-        let percent = 0; let tier = "SOLDADO"; let taxa = "5.0%";
-        if(s >= 1000000) { tier = "SOBERANO"; taxa = "2.0%"; percent = 100; }
-        else if(s >= 250000) { tier = "ELITE MERCHANT"; taxa = "3.5%"; percent = 75; }
-        else if(s >= 100000) { tier = "PRO PLAYER"; taxa = "4.0%"; percent = 50; }
-        else if(s >= 10000) { tier = "INICIANTE"; taxa = "4.5%"; percent = 25; }
-
-        document.getElementById('faturamento-bar').style.width = percent + '%';
-        document.getElementById('prog-val').innerText = Math.round(percent) + '%';
-        document.getElementById('tier-badge').innerText = `Tier: ${tier}`;
-        document.getElementById('taxa-display').innerText = `Taxa de Liquidação: ${taxa}`;
+        let tier = "Soldado"; let taxa = "5.0%"; let per = (s/10000)*100;
+        if(s >= 100000) { tier = "Soberano"; taxa = "2.0%"; per = 100; }
+        else if(s >= 50000) { tier = "Elite"; taxa = "3.5%"; per = 75; }
+        
+        document.getElementById('tier-name').innerText = tier;
+        document.getElementById('taxa-display').innerText = `Taxa: ${taxa}`;
+        document.getElementById('faturamento-bar').style.width = per + '%';
+        document.getElementById('prog-val').innerText = Math.round(per) + '%';
     }, 1000);
-
-    const salva = localStorage.getItem('pix_'+user);
-    if(salva) {
-        document.getElementById('chave-salva-box').classList.remove('hidden');
-        document.getElementById('chave-display').innerText = salva;
-        document.getElementById('inputs-pix').classList.add('hidden');
-    }
+    renderLogs();
 </script>
 </body>
 </html>
