@@ -3,40 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MF-PAY | Dashboard</title>
+    <title>MF-PAY | Saldo</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-[#0b0e11] text-white">
-
-    <nav class="p-6 border-b border-white/5 flex justify-between items-center">
+    <nav class="p-6 border-b border-white/5 flex justify-between items-center bg-[#161a1e]">
         <h1 class="text-xl font-black italic text-[#00e38c]">MF-PAY</h1>
         <div class="text-right">
-            <p class="text-[9px] text-zinc-500 font-bold uppercase">Saldo Disponível</p>
             <h2 id="saldo-txt" class="text-lg font-black text-[#00e38c]">R$ 0,00</h2>
         </div>
     </nav>
 
     <main class="p-6 max-w-md mx-auto">
         <div class="bg-[#161a1e] p-8 rounded-[40px] border border-white/5 text-center shadow-2xl">
-            <h2 class="text-xl font-bold mb-2 italic">RECARGA VIA PIX</h2>
-            <p class="text-zinc-500 text-[10px] uppercase mb-6">Depósito Manual</p>
+            <h2 class="text-xl font-bold mb-6 italic uppercase">Depósito Manual</h2>
 
-            <div class="bg-black/40 p-5 rounded-3xl border border-[#00e38c]/10 mb-6">
-                <p class="text-[9px] text-zinc-500 uppercase mb-2">Chave PIX Oficial</p>
-                <p class="font-mono text-sm text-[#00e38c] font-bold break-all selection:bg-[#00e38c] selection:text-black">SUA_CHAVE_PIX_AQUI</p>
+            <div class="bg-black p-5 rounded-3xl border border-[#00e38c]/20 mb-6 text-left">
+                <p class="text-[9px] text-zinc-500 uppercase mb-2">Chave PIX para Depósito</p>
+                <p class="font-mono text-sm text-[#00e38c] font-bold break-all">CHAVE_AQUI</p>
             </div>
             
-            <a href="https://wa.me/55SEUTELEFONE?text=Olá, acabei de fazer um PIX. Meu e-mail é: " id="btn-whats" target="_blank" class="block w-full py-5 bg-[#00e38c] text-black font-black rounded-2xl uppercase italic text-xs shadow-lg shadow-[#00e38c]/20">
+            <a href="https://wa.me/SEU_ZAP?text=Olá MF, fiz um PIX. Meu e-mail é: " id="btn-whats" target="_blank" class="block w-full py-5 bg-[#00e38c] text-black font-black rounded-2xl uppercase italic text-xs shadow-lg shadow-[#00e38c]/20">
                 Enviar Comprovante
             </a>
         </div>
 
-        <button onclick="logout()" class="w-full mt-8 text-zinc-600 text-[10px] font-bold uppercase tracking-widest">Sair da Conta</button>
+        <button onclick="localStorage.clear(); window.location.href='login.html'" class="w-full mt-10 text-zinc-600 text-[10px] font-bold uppercase tracking-widest">Sair da Conta</button>
     </main>
 
 <script>
     const DB_URL = "https://api.jsonbin.io/v3/b/65cd2a96dc74654018b36873";
-    const KEY = "$2a$10$ExemploChaveMestreMFPAY2026";
+    const KEY = "$2a$10$ExemploChaveMestreMFPAY2026"; 
     const user = localStorage.getItem('mf_user');
 
     if (!user) window.location.href = 'login.html';
@@ -45,12 +42,11 @@
         try {
             const res = await fetch(DB_URL, { headers: { "X-Master-Key": KEY }});
             const data = await res.json();
-            const saldo = data.record.usuarios[user].saldo;
+            const saldo = data.record.usuarios[user].saldo || 0;
             document.getElementById('saldo-txt').innerText = `R$ ${saldo.toFixed(2)}`;
-            document.getElementById('btn-whats').href += user;
+            if(!document.getElementById('btn-whats').href.includes(user)) document.getElementById('btn-whats').href += user;
         } catch (e) {}
     }
-    function logout() { localStorage.clear(); window.location.href='login.html'; }
     sync();
     setInterval(sync, 10000);
 </script>
