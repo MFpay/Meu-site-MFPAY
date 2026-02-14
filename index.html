@@ -2,171 +2,104 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MF-COLLECT | Painel Oficial</title>
+    <title>MF-COLLECT | Global Cloud</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { background: #0b0e11; color: #fff; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(22, 26, 30, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
-        
-        /* Estilo da Carta */
-        .card-inner {
-            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            transform-style: preserve-3d;
-        }
-        .is-flipped { transform: rotateY(180deg); }
-        
-        .legendary-border { 
-            border: 2px solid #facc15; 
-            box-shadow: 0 0 30px rgba(250, 204, 21, 0.4);
-            background: linear-gradient(145deg, #1e1e1e, #2d2400);
-        }
-
-        /* Animação de Brilho */
-        .shimmer {
-            position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            animation: shimmer 3s infinite;
-        }
-        @keyframes shimmer { 100% { left: 200%; } }
-        
+        .chat-box { height: 180px; overflow-y: auto; background: rgba(0,0,0,0.4); border-radius: 20px; padding: 15px; }
+        .msg-item { background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 12px; margin-bottom: 8px; border-left: 3px solid #00e38c; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #00e38c; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-[#0b0e11] min-h-screen pb-24">
-
-    <nav class="glass sticky top-0 z-50 p-6 flex justify-between items-center border-b border-white/5">
-        <div class="flex items-center gap-2">
-            <div class="p-2 bg-[#00e38c] rounded-lg">
-                <i data-lucide="layers" class="text-black w-5 h-5"></i>
-            </div>
-            <h1 class="text-xl font-black italic tracking-tighter">MF-COLLECT</h1>
-        </div>
-        <div class="text-right">
-            <p class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Saldo Disponível</p>
-            <h2 id="balance" class="text-xl font-black text-[#00e38c]">R$ 0,00</h2>
-        </div>
-    </nav>
-
-    <main class="max-w-6xl mx-auto p-6">
-        
-        <div class="relative bg-gradient-to-r from-[#161a1e] to-[#0b0e11] rounded-[40px] p-8 mb-12 border border-white/5 overflow-hidden">
-            <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-                <div>
-                    <span class="bg-[#00e38c]/10 text-[#00e38c] text-[10px] font-black px-4 py-1 rounded-full uppercase">Temporada 01</span>
-                    <h2 class="text-4xl font-black italic uppercase mt-4">Pack Lendário</h2>
-                    <p class="text-zinc-500 text-sm mt-2">Chance de 5% de encontrar itens de R$ 300,00</p>
-                </div>
-                <button onclick="buyPack()" id="buyBtn" class="bg-[#00e38c] text-black font-black px-12 py-5 rounded-3xl hover:scale-105 transition active:scale-95 shadow-xl shadow-[#00e38c]/20 uppercase italic text-sm">
-                    Abrir Pack (R$ 5,00)
-                </button>
-            </div>
-            <div class="absolute right-[-10%] top-[-50%] w-64 h-64 bg-[#00e38c]/10 blur-[100px]"></div>
-        </div>
-
-        <div class="mb-6 flex justify-between items-center">
-            <h3 class="text-lg font-black italic uppercase tracking-widest">Minha Coleção</h3>
-            <span id="card-count" class="text-zinc-500 text-xs font-bold">0 Cartas</span>
-        </div>
-
-        <div id="inventory" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            </div>
-
-    </main>
-
-    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 glass rounded-full p-2 flex gap-2 border border-white/10 shadow-2xl">
-        <button class="p-4 bg-[#00e38c] text-black rounded-full"><i data-lucide="home" class="w-5 h-5"></i></button>
-        <button class="p-4 text-zinc-500"><i data-lucide="shopping-bag" class="w-5 h-5"></i></button>
-        <button onclick="window.location.href='perfil.html'" class="p-4 text-zinc-500"><i data-lucide="user" class="w-5 h-5"></i></button>
-    </div>
+<body class="pb-24">
+    <div id="app"></div>
 
 <script>
-    lucide.createIcons();
+    // ENDEREÇO DO SEU BANCO DE DADOS NA NUVEM
+    const CLOUD_DB_URL = "https://api.jsonbin.io/v3/b/65cd2a96dc74654018b36873"; 
+    const MASTER_KEY = "$2a$10$ExemploChaveMestreMFPAY2026"; 
+    const userLogado = localStorage.getItem('mf_user');
 
-    const AT_TOKEN = "patoycipIgoocXYWm.456e082a2c819a6b0afa041a2e670de54ee449bb6afe1c1f77075de45c51657c";
-    const AT_BASE = "appnDadHY2h1sN6AI";
-    const userEmail = localStorage.getItem('mf_user');
+    if (!userLogado) window.location.href = 'login.html';
 
-    let currentBalance = 0;
-    let myCards = [];
+    async function fetchDB() {
+        const res = await fetch(CLOUD_DB_URL, { headers: { "X-Master-Key": MASTER_KEY } });
+        const json = await res.json(); return json.record;
+    }
 
-    // Carregar Saldo do Airtable
-    async function loadData() {
-        if(!userEmail) return window.location.href = 'login.html';
-        
-        const res = await fetch(`https://api.airtable.com/v0/${AT_BASE}/usuarios?filterByFormula={Merchant}='${userEmail}'`, {
-            headers: { "Authorization": `Bearer ${AT_TOKEN}` }
+    async function saveDB(data) {
+        await fetch(CLOUD_DB_URL, {
+            method: 'PUT', headers: { "Content-Type": "application/json", "X-Master-Key": MASTER_KEY },
+            body: JSON.stringify(data)
         });
-        const data = await res.json();
-        if(data.records[0]) {
-            currentBalance = data.records[0].fields.Saldo || 0;
-            document.getElementById('balance').innerText = `R$ ${currentBalance.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-        }
     }
 
-    const pool = [
-        { name: "Recruta MF", rarity: "Comum", color: "#94a3b8", icon: "shield", price: 0.5 },
-        { name: "Comandante Neon", rarity: "Raro", color: "#3b82f6", icon: "zap", price: 15 },
-        { name: "CYBER LORD", rarity: "LENDÁRIA", color: "#facc15", icon: "crown", price: 150, legendary: true }
-    ];
+    async function render() {
+        const db = await fetchDB();
+        if (!db.usuarios[userLogado]) db.usuarios[userLogado] = { saldo: 0, cartas: [] };
+        const player = db.usuarios[userLogado];
+        const mensagens = db.mensagens || [];
 
-    function buyPack() {
-        if(currentBalance < 5) return alert("Deposite créditos para abrir packs!");
-        
-        currentBalance -= 5;
-        document.getElementById('balance').innerText = `R$ ${currentBalance.toFixed(2)}`;
-        
-        // Sorteio
-        const rand = Math.random();
-        let result;
-        if(rand > 0.95) result = pool[2]; // Lendária
-        else if(rand > 0.70) result = pool[1]; // Rara
-        else result = pool[0]; // Comum
-
-        createCardUI(result);
-    }
-
-    function createCardUI(card) {
-        const inv = document.getElementById('inventory');
-        const cardId = Date.now();
-        
-        const div = document.createElement('div');
-        div.className = "relative h-64 cursor-pointer";
-        div.innerHTML = `
-            <div id="inner-${cardId}" class="card-inner w-full h-full relative">
-                <div class="absolute inset-0 bg-[#1c2127] rounded-3xl border-2 border-[#00e38c]/20 flex items-center justify-center backface-hidden" style="backface-visibility: hidden;">
-                    <i data-lucide="layers" class="text-[#00e38c] w-10 h-10 animate-pulse"></i>
-                </div>
-                <div class="absolute inset-0 rounded-3xl p-4 flex flex-col items-center justify-between text-center backface-hidden ${card.legendary ? 'legendary-border' : 'bg-[#161a1e] border border-white/5'}" style="backface-visibility: hidden; transform: rotateY(180deg);">
-                    ${card.legendary ? '<div class="shimmer"></div>' : ''}
-                    <p class="text-[8px] font-black uppercase tracking-widest" style="color: ${card.color}">${card.rarity}</p>
-                    <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center my-2">
-                        <i data-lucide="${card.icon}" style="color: ${card.color}"></i>
+        document.getElementById('app').innerHTML = `
+            <div class="p-6 max-w-xl mx-auto">
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="text-2xl font-black italic">MF<span class="text-[#00e38c]">CLOUD</span></h1>
+                    <div class="text-right">
+                        <p class="text-[9px] font-bold text-zinc-500 uppercase">Saldo Cloud</p>
+                        <h2 class="text-xl font-black text-[#00e38c]">R$ ${player.saldo.toFixed(2)}</h2>
                     </div>
-                    <h4 class="text-xs font-black uppercase italic">${card.name}</h4>
-                    <button class="w-full py-2 bg-white/5 hover:bg-[#00e38c]/20 text-[#00e38c] rounded-xl text-[9px] font-black transition">VENDER R$ ${card.price}</button>
                 </div>
-            </div>
-        `;
-        
-        inv.prepend(div);
+
+                <div class="bg-[#161a1e] p-5 rounded-[30px] border border-white/5 mb-8">
+                    <h3 class="text-[10px] font-black uppercase text-[#00e38c] mb-3">Chat da Comunidade</h3>
+                    <div class="chat-box mb-4" id="chat-container">
+                        ${mensagens.map(m => `<div class="msg-item"><span class="text-[#00e38c] font-black text-[9px] uppercase">${m.user.split('@')[0]}</span><p class="text-xs text-zinc-300">${m.texto}</p></div>`).join('')}
+                    </div>
+                    <div class="flex gap-2">
+                        <input id="msg-input" type="text" placeholder="Escreva aqui..." class="flex-1 p-3 bg-black rounded-xl border border-white/10 text-xs outline-none">
+                        <button onclick="enviarMsg()" class="bg-[#00e38c] text-black p-3 rounded-xl"><i data-lucide="send" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+
+                <button onclick="abrirPack()" class="w-full py-8 bg-[#161a1e] border-2 border-[#00e38c]/20 rounded-[40px] mb-8 hover:border-[#00e38c] transition group">
+                    <span class="block text-2xl font-black italic uppercase group-hover:scale-110 transition">Abrir Pack (R$ 5,00)</span>
+                </button>
+
+                <h3 class="text-[10px] font-black text-zinc-600 uppercase mb-4 tracking-widest text-center">Coleção Permanente</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    ${player.cartas.map(c => `<div class="bg-[#161a1e] p-4 rounded-2xl border border-white/5 text-center font-bold uppercase text-xs italic">${c}</div>`).join('')}
+                </div>
+            </div>`;
         lucide.createIcons();
-        
-        // Animação de virar
-        setTimeout(() => {
-            document.getElementById(`inner-${cardId}`).classList.add('is-flipped');
-            updateCount();
-        }, 100);
+        const chat = document.getElementById('chat-container'); chat.scrollTop = chat.scrollHeight;
     }
 
-    function updateCount() {
-        const count = document.getElementById('inventory').children.length;
-        document.getElementById('card-count').innerText = `${count} Cartas`;
+    async function abrirPack() {
+        const db = await fetchDB();
+        const player = db.usuarios[userLogado];
+        if (player.saldo < 5) return alert("Deposite via Cakto para abrir!");
+
+        const cartas = ["Soldado MF", "Elite MF", "LENDÁRIA MF"];
+        const sorteada = cartas[Math.floor(Math.random() * cartas.length)];
+        player.saldo -= 5;
+        player.cartas.push(sorteada);
+        db.mensagens.push({ user: "SISTEMA", texto: `🔥 ${userLogado.split('@')[0]} tirou um(a) ${sorteada}!` });
+        await saveDB(db); render();
     }
 
-    loadData();
+    async function enviarMsg() {
+        const input = document.getElementById('msg-input');
+        if (!input.value.trim()) return;
+        const db = await fetchDB();
+        db.mensagens.push({ user: userLogado, texto: input.value });
+        if (db.mensagens.length > 20) db.mensagens.shift();
+        await saveDB(db); input.value = ""; render();
+    }
+
+    render();
+    setInterval(render, 10000); // Atualiza chat a cada 10s
 </script>
 </body>
 </html>
