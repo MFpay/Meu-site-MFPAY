@@ -1,200 +1,229 @@
-<!DOCTYPE html>
+                <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MF-SYSTEM | OFICIAL</title>
+    <title>MFPAY | SISTEMA OFICIAL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #050505; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .glass { background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(0, 227, 140, 0.1); }
+        body { background: #050505; color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
         .view { display: none; min-height: 100vh; flex-direction: column; }
-        .active-view { display: flex; animation: fadeIn 0.3s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .mf-gradient { background: linear-gradient(135deg, #00e38c 0%, #00a365 100%); }
+        .active-view { display: flex; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .mf-input { background: #111; border: 1px solid #222; border-radius: 15px; padding: 15px; width: 100%; outline: none; color: white; font-size: 14px; }
+        .mf-btn { background: #00e38c; color: black; font-weight: 900; padding: 18px; border-radius: 15px; text-transform: uppercase; font-style: italic; transition: 0.2s; cursor: pointer; border: none; }
+        .admin-card { background: #0a0a0a; border: 1px solid #222; border-radius: 25px; padding: 20px; }
     </style>
 </head>
 <body>
 
     <section id="view-login" class="view active-view items-center justify-center p-6">
-        <div class="glass p-10 rounded-[40px] w-full max-w-sm text-center shadow-2xl border-b-4 border-[#00e38c]">
-            <h1 class="text-4xl font-black italic mb-2 text-[#00e38c]">MF-SYSTEM</h1>
-            <p class="text-[10px] text-zinc-500 mb-8 uppercase tracking-[0.3em]">Sistema Unificado v7.0</p>
-            <div class="space-y-4">
-                <input type="email" id="l-email" placeholder="SEU E-MAIL" class="w-full p-4 rounded-2xl bg-black border border-white/5 outline-none focus:border-[#00e38c] text-xs transition-all">
-                <input type="password" id="l-pin" placeholder="SEU PIN" class="w-full p-4 rounded-2xl bg-black border border-white/5 text-center font-bold tracking-[0.5em] outline-none focus:border-[#00e38c] text-xs">
-                <button onclick="logar()" id="btn-entrar" class="w-full py-5 mf-gradient text-black font-black rounded-2xl uppercase italic text-xs mt-4 hover:scale-[1.02] transition-all">Entrar no Terminal</button>
+        <div class="w-full max-w-sm text-center">
+            <h1 class="text-5xl font-black italic text-[#00e38c] mb-10">MFPAY</h1>
+            <div class="space-y-3">
+                <input type="email" id="log-email" placeholder="E-MAIL" class="mf-input">
+                <input type="password" id="log-senha" placeholder="SENHA" class="mf-input">
+                <button onclick="fazerLogin()" class="mf-btn w-full mt-4">Acessar Terminal</button>
+                <p class="text-zinc-600 text-[11px] mt-6">Não tem conta? <button onclick="trocarTela('view-cadastro')" class="text-[#00e38c] font-bold">Cadastrar-se</button></p>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-cadastro" class="view items-center justify-center p-6">
+        <div class="w-full max-w-sm text-center">
+            <h1 class="text-4xl font-black italic text-[#00e38c] mb-8 uppercase">Criar Conta</h1>
+            <div class="space-y-3">
+                <input type="text" id="reg-nome" placeholder="NOME COMPLETO" class="mf-input">
+                <input type="email" id="reg-email" placeholder="E-MAIL" class="mf-input">
+                <input type="password" id="reg-senha" placeholder="SENHA" class="mf-input">
+                <button onclick="fazerCadastro()" class="mf-btn w-full mt-4">Finalizar Cadastro</button>
+                <button onclick="trocarTela('view-login')" class="text-zinc-600 text-[11px] mt-4 block w-full uppercase font-bold">Voltar</button>
             </div>
         </div>
     </section>
 
     <section id="view-dash" class="view">
-        <nav class="p-6 border-b border-white/5 flex justify-between items-center glass">
-            <h1 class="text-xl font-black italic text-[#00e38c]">MF-CORE</h1>
+        <nav class="p-6 flex justify-between items-center border-b border-white/5 bg-black/50 backdrop-blur-md sticky top-0">
+            <div>
+                <p id="txt-user-nome" class="text-[8px] text-[#00e38c] font-black uppercase tracking-widest italic">User</p>
+                <h1 class="text-xl font-black italic">MFPAY <span class="text-zinc-700 not-italic">CLOUD</span></h1>
+            </div>
             <div class="text-right">
-                <p class="text-[8px] text-zinc-500 uppercase font-bold">Saldo</p>
-                <h2 id="s-saldo" class="text-xl font-black text-white">R$ 0,00</h2>
+                <p class="text-[8px] text-zinc-500 uppercase font-black">Saldo Disponível</p>
+                <h2 id="user-saldo" class="text-xl font-black italic text-[#00e38c]">R$ 0,00</h2>
             </div>
         </nav>
-        <main class="p-6 max-w-md mx-auto space-y-6">
-            <div class="grid grid-cols-2 gap-4">
-                <button onclick="trocarView('view-pix')" class="bg-white text-black py-4 rounded-2xl font-black text-[10px] uppercase">Depositar</button>
-                <button onclick="sacar()" class="glass py-4 rounded-2xl font-black text-[10px] uppercase border border-white/10">Sacar</button>
+        <main class="p-6 max-w-md mx-auto w-full space-y-6">
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="trocarTela('view-checkout')" class="bg-white text-black py-4 rounded-2xl font-black text-[10px] uppercase italic">Depositar</button>
+                <button onclick="trocarTela('view-saque')" class="bg-zinc-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase border border-white/10 italic">Sacar</button>
             </div>
-            <div class="glass p-8 rounded-[35px] text-center border-l-4 border-[#00e38c]">
-                <p class="text-[10px] text-zinc-500 mb-4 uppercase font-bold">Operação Disponível</p>
-                <button id="btn-job" onclick="fazerTarefa()" class="w-full p-6 bg-black rounded-3xl border border-white/5 hover:border-[#00e38c] transition-all flex justify-between items-center group">
-                    <span class="font-black text-xs uppercase italic group-hover:text-[#00e38c]">PROCESSAR DADOS</span>
-                    <span id="job-timer" class="text-[#00e38c] font-black italic">R$ 20.00</span>
+            <div class="bg-zinc-900/40 p-10 rounded-[45px] border border-white/5 text-center">
+                <button onclick="alert('Sistema de Nuvem em Sincronia...')" class="w-full py-10 bg-black rounded-[35px] border border-[#00e38c]/20">
+                    <span class="text-2xl font-black italic text-[#00e38c]">ATIVAR NUVEM</span>
                 </button>
             </div>
-            <div class="glass p-6 rounded-[30px]">
-                <p class="text-[9px] text-zinc-500 mb-4 uppercase font-black">Histórico Recente</p>
-                <div id="logs" class="space-y-3 text-[9px] font-mono"></div>
-            </div>
-            <button onclick="sair()" class="w-full text-zinc-700 text-[10px] font-bold uppercase py-4">Desconectar</button>
         </main>
     </section>
 
-    <section id="view-pix" class="view items-center justify-center p-6">
-        <div class="glass p-8 rounded-[40px] w-full max-w-sm text-center">
-            <h1 class="text-xl font-black text-[#00e38c] mb-6">GATEWAY MF-PAY</h1>
-            <input type="number" id="v-pix" placeholder="VALOR R$" class="w-full p-4 rounded-2xl bg-black border border-white/5 mb-4 text-center text-[#00e38c] font-black text-xl outline-none">
-            <button onclick="irWhatsApp()" class="w-full py-5 mf-gradient text-black font-black rounded-2xl uppercase text-xs">Gerar Ordem de Saldo</button>
-            <button onclick="trocarView('view-dash')" class="text-zinc-600 text-[9px] uppercase mt-6 block w-full">Voltar</button>
-        </div>
+    <section id="view-checkout" class="view bg-[#f3f4f6] text-black">
+        <nav class="bg-white p-5 flex justify-between items-center border-b border-gray-200">
+            <h1 class="text-xl font-black italic text-[#00e38c]">MFPAY</h1>
+            <button onclick="trocarTela('view-dash')" class="text-xs font-bold text-gray-400">VOLTAR</button>
+        </nav>
+        <main class="p-6 max-w-md mx-auto w-full space-y-4">
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center">
+                <p class="text-[10px] text-gray-400 font-bold uppercase mb-4 tracking-widest">Depósito via PIX</p>
+                <div class="bg-gray-50 p-4 rounded-2xl mb-4 border border-dashed border-gray-200">
+                    <p class="text-[10px] text-gray-400 uppercase font-bold mb-2">Chave E-mail:</p>
+                    <h3 class="text-xs font-black break-all select-all">contaprajogoplaystaicion@gmail.com</h3>
+                </div>
+                <input type="number" id="v-pix" placeholder="Quanto você pagou? R$" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-center font-black text-xl mb-4 outline-none">
+                <button onclick="gerarOrdem()" class="w-full mf-btn text-white">Enviar Comprovante</button>
+            </div>
+        </main>
     </section>
 
-    <section id="view-admin" class="view p-6">
-        <div class="max-w-xl mx-auto w-full">
-            <header class="flex justify-between items-center mb-10">
-                <h1 class="text-[#00e38c] font-black text-2xl italic">MF_ADMIN</h1>
-                <button onclick="sair()" class="bg-red-500/10 text-red-500 px-4 py-2 rounded-xl text-[8px] font-black uppercase">Sair</button>
-            </header>
-            <div id="adm-lista" class="space-y-4"></div>
-        </div>
+    <section id="view-saque" class="view">
+        <nav class="p-8 border-b border-white/5"><h1 class="text-xl font-black italic text-[#00e38c]">SOLICITAR SAQUE</h1></nav>
+        <main class="p-6 max-w-md mx-auto w-full space-y-4">
+            <input type="text" id="pix-saque" placeholder="SUA CHAVE PIX" class="mf-input">
+            <input type="number" id="val-saque" placeholder="VALOR" class="mf-input text-[#00e38c] font-bold">
+            <button onclick="pedirSaque()" class="mf-btn w-full">Pedir no WhatsApp</button>
+            <button onclick="trocarTela('view-dash')" class="w-full text-zinc-700 text-[10px] font-bold uppercase">Voltar</button>
+        </main>
+    </section>
+
+    <section id="view-admin" class="view">
+        <nav class="p-8 bg-[#00e38c] text-black font-black flex justify-between items-center shadow-xl">
+            <span>MF-ADMIN CENTRAL</span>
+            <button onclick="location.reload()" class="text-xs uppercase bg-black text-white px-3 py-1 rounded">Sair</button>
+        </nav>
+        <main class="p-6 space-y-6 max-w-lg mx-auto w-full">
+            <div class="admin-card border-2 border-yellow-500/30">
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-[10px] font-black uppercase text-yellow-500 italic">🔔 Pedidos de Saldo</p>
+                    <button onclick="carregarNotifs()" class="text-[8px] bg-zinc-800 px-2 py-1 rounded">Atualizar</button>
+                </div>
+                <div id="lista-pedidos" class="space-y-3">
+                    <p class="text-[9px] text-zinc-700 text-center py-4">Nenhum pedido pendente...</p>
+                </div>
+            </div>
+            
+            <div class="admin-card">
+                <p class="text-[10px] text-zinc-500 font-bold uppercase mb-4 italic">Controle de Manutenção</p>
+                <div class="flex gap-2">
+                    <button onclick="setManutencao(true)" class="flex-1 py-4 bg-zinc-900 rounded-xl text-[9px] font-black uppercase border border-red-600/30">Ligar</button>
+                    <button onclick="setManutencao(false)" class="flex-1 py-4 bg-zinc-900 rounded-xl text-[9px] font-black uppercase border border-green-600/30">Desligar</button>
+                </div>
+            </div>
+        </main>
     </section>
 
     <script>
-        const URL = "https://api.jsonbin.io/v3/b/6990a515d0ea881f40ba65eb";
-        const KEY = "$2a$10$BH1hrj8d.ptln54HlH7u/Oo2rbwnadiFrQZDHfXHEOSy2nwtswFMG";
-        let user = localStorage.getItem('mf_user');
-        let travado = false;
+        const BIN_ID = "6990a515d0ea881f40ba65eb";
+        const API_KEY = "$2a$10$BH1hrj8d.ptln54HlH7u/Oo2rbwnadiFrQZDHfXHEOSy2nwtswFMG";
+        const URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-        function trocarView(id) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active-view'));
-            document.getElementById(id).classList.add('active-view');
-            if(id === 'view-dash') att();
-            if(id === 'view-admin') monitorar();
-        }
+        let currentUser = null;
 
         async function api(metodo, corpo = null) {
-            const opt = { method: metodo, headers: { "X-Master-Key": KEY, "Content-Type": "application/json" }};
+            const opt = { 
+                method: metodo, 
+                headers: { "X-Master-Key": API_KEY, "Content-Type": "application/json", "X-Bin-Meta": "false" }
+            };
             if(corpo) opt.body = JSON.stringify(corpo);
             const r = await fetch(URL, opt);
-            return (await r.json()).record;
+            return await r.json();
         }
 
-        async function logar() {
-            const e = document.getElementById('l-email').value.trim().toLowerCase();
-            const p = document.getElementById('l-pin').value.trim();
-            if(!e || !p) return alert("Preencha tudo");
-            
-            try {
-                const db = await api("GET");
-                if(db.usuarios[e] && db.usuarios[e].pin === p) {
-                    localStorage.setItem('mf_user', e);
-                    user = e;
-                    trocarView(e === 'admin@mf.com' ? 'view-admin' : 'view-dash');
-                } else { alert("Erro no login"); }
-            } catch(ex) { alert("Erro de conexão"); }
+        function trocarTela(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active-view'));
+            document.getElementById(id).classList.add('active-view');
+            document.body.style.background = (id === 'view-checkout') ? '#f3f4f6' : '#050505';
         }
 
-        async function att() {
-            if(!user || user === 'admin@mf.com') return;
-            const res = await fetch(URL, { headers: { "X-Master-Key": KEY, "X-Bin-Meta": "false" }});
-            const db = await res.json();
-            const u = db.usuarios[user];
-            document.getElementById('s-saldo').innerText = `R$ ${u.saldo.toFixed(2)}`;
-            if(u.logs) {
-                document.getElementById('logs').innerHTML = u.logs.slice(-4).reverse().map(l => `
-                    <div class="flex justify-between border-b border-white/5 pb-2">
-                        <span class="text-zinc-600">${l.t}</span>
-                        <span class="${l.v < 0 ? 'text-red-500' : 'text-[#00e38c]'} font-bold">${l.m} (R$ ${Math.abs(l.v)})</span>
-                    </div>
-                `).join('');
-            }
-        }
-
-        async function fazerTarefa() {
-            if(travado) return;
-            travado = true;
-            const btn = document.getElementById('btn-job');
-            const timer = document.getElementById('job-timer');
-            btn.style.opacity = "0.5";
-            
-            try {
-                const db = await api("GET");
-                if(db.usuarios[user].saldo < 20) { alert("Saldo baixo"); travado = false; btn.style.opacity = "1"; return; }
-                
-                db.usuarios[user].saldo -= 20;
-                if(!db.usuarios[user].logs) db.usuarios[user].logs = [];
-                db.usuarios[user].logs.push({ t: new Date().toLocaleTimeString(), m: "OPERAÇÃO", v: -20 });
-                
-                await api("PUT", db);
-                att();
-                
-                let c = 5;
-                const i = setInterval(() => {
-                    timer.innerText = c + "s";
-                    c--;
-                    if(c < 0) { clearInterval(i); timer.innerText = "R$ 20.00"; travado = false; btn.style.opacity = "1"; }
-                }, 1000);
-            } catch(e) { travado = false; btn.style.opacity = "1"; }
-        }
-
-        async function sacar() {
-            const v = parseFloat(prompt("Valor:"));
-            if(v < 20 || isNaN(v)) return alert("Mínimo R$ 20");
-            const db = await api("GET");
-            if(db.usuarios[user].saldo < v) return alert("Sem saldo");
-            db.usuarios[user].saldo -= v;
-            db.usuarios[user].logs.push({ t: new Date().toLocaleTimeString(), m: "SAQUE", v: -v });
+        async function fazerCadastro() {
+            const n = document.getElementById('reg-nome').value.toUpperCase();
+            const e = document.getElementById('reg-email').value;
+            const s = document.getElementById('reg-senha').value;
+            if(!n || !e || !s) return alert("Preencha todos os campos!");
+            let db = await api("GET");
+            if(db.usuarios[e]) return alert("E-mail já cadastrado!");
+            db.usuarios[e] = { nome: n, pin: s, saldo: 0 };
             await api("PUT", db);
-            alert("Solicitado!");
-            att();
+            alert("Cadastro realizado! Faça login."); trocarTela('view-login');
         }
 
-        function irWhatsApp() {
+        async function fazerLogin() {
+            const e = document.getElementById('log-email').value;
+            const s = document.getElementById('log-senha').value;
+            if(e === "contaprajogoplaystaicion@gmail.com" && s === "admin123") {
+                trocarTela('view-admin'); carregarNotifs(); return;
+            }
+            let db = await api("GET");
+            if(db.usuarios[e] && db.usuarios[e].pin === s) {
+                currentUser = e;
+                document.getElementById('txt-user-nome').innerText = db.usuarios[e].nome;
+                trocarTela('view-dash');
+                monitorar();
+            } else { alert("Login Inválido!"); }
+        }
+
+        async function gerarOrdem() {
             const v = document.getElementById('v-pix').value;
-            window.open(`https://wa.me/5519999351550?text=MF-PAY: Depósito R$ ${v} para ${user}`);
-            trocarView('view-dash');
+            if(!v) return alert("Digite o valor!");
+            let db = await api("GET");
+            if(!db.notificacoes) db.notificacoes = [];
+            db.notificacoes.push({ id: Date.now(), email: currentUser, valor: parseFloat(v) });
+            await api("PUT", db);
+            window.open(`https://wa.me/5519999351550?text=Depositei R$ ${v} no MFPAY. Libera meu saldo!`);
+            trocarTela('view-dash');
+        }
+
+        async function carregarNotifs() {
+            let db = await api("GET");
+            const lista = document.getElementById('lista-pedidos');
+            if(!db.notificacoes || db.notificacoes.length === 0) {
+                lista.innerHTML = `<p class="text-[9px] text-zinc-700 text-center py-4">SEM PEDIDOS</p>`;
+                return;
+            }
+            lista.innerHTML = db.notificacoes.map(n => `
+                <div class="bg-black p-4 rounded-xl flex justify-between items-center border border-white/5">
+                    <div>
+                        <p class="text-[8px] font-bold text-zinc-400">${n.email}</p>
+                        <p class="text-[#00e38c] text-xs font-black italic">R$ ${n.valor}</p>
+                    </div>
+                    <button onclick="aprovar('${n.id}', '${n.email}', ${n.valor})" class="bg-[#00e38c] text-black text-[9px] font-black px-4 py-2 rounded-lg">APROVAR</button>
+                </div>
+            `).join('');
+        }
+
+        async function aprovar(id, email, valor) {
+            let db = await api("GET");
+            db.usuarios[email].saldo += valor;
+            db.notificacoes = db.notificacoes.filter(n => n.id != id);
+            await api("PUT", db); 
+            alert("Saldo Aprovado!"); 
+            carregarNotifs();
         }
 
         async function monitorar() {
-            const db = await api("GET");
-            let h = '';
-            for(let u in db.usuarios) {
-                if(u === 'admin@mf.com') continue;
-                h += `<div class="glass p-5 rounded-3xl flex justify-between items-center border-l-4 border-[#00e38c]">
-                    <div><p class="text-[8px] text-zinc-500">${u}</p><p class="font-black">R$ ${db.usuarios[u].saldo.toFixed(2)}</p></div>
-                    <button onclick="add('${u}', 50)" class="bg-[#00e38c] text-black px-4 py-2 rounded-xl font-bold text-[10px]">+50</button>
-                </div>`;
-            }
-            document.getElementById('adm-lista').innerHTML = h;
+            setInterval(async () => {
+                if(!currentUser) return;
+                const db = await api("GET");
+                document.getElementById('user-saldo').innerText = `R$ ${db.usuarios[currentUser].saldo.toFixed(2)}`;
+            }, 8000);
         }
 
-        async function add(u, v) {
-            const db = await api("GET");
-            db.usuarios[u].saldo += v;
-            if(!db.usuarios[u].logs) db.usuarios[u].logs = [];
-            db.usuarios[u].logs.push({ t: new Date().toLocaleTimeString(), m: "ADMIN", v: v });
-            await api("PUT", db);
-            monitorar();
+        async function setManutencao(st) {
+            let db = await api("GET"); db.config.manutencao = st; await api("PUT", db);
+            alert("Sistema " + (st ? "em Manutenção" : "Online"));
         }
 
-        function sair() { localStorage.clear(); location.reload(); }
-        if(user) trocarView(user === 'admin@mf.com' ? 'view-admin' : 'view-dash');
+        function pedirSaque() {
+            window.open(`https://wa.me/5519999351550?text=MFPAY: Solicito Saque de R$ ${document.getElementById('val-saque').value}`);
+        }
     </script>
 </body>
 </html>
