@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MF-ADMIN | Gestão</title>
+    <title>MF-ADMIN</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-zinc-950 text-white p-6">
-    <h1 class="text-2xl font-black mb-8 text-[#00e38c]">PAINEL ADM MF-PAY</h1>
-    
-    <div id="lista-usuarios" class="space-y-4 max-w-2xl">
-        </div>
+<body class="bg-black text-white p-6">
+    <h1 class="text-2xl font-black mb-8 text-[#00e38c]">SISTEMA MF-ADMIN</h1>
+    <div id="lista" class="space-y-4"></div>
 
 <script>
     const DB_URL = "https://api.jsonbin.io/v3/b/65cd2a96dc74654018b36873";
@@ -20,33 +18,25 @@
         const res = await fetch(DB_URL, { headers: { "X-Master-Key": KEY }});
         const data = await res.json();
         const db = data.record;
-        
         let html = '';
-        for (let email in db.usuarios) {
-            html += `
-            <div class="bg-zinc-900 p-6 rounded-2xl border border-white/5 flex justify-between items-center">
-                <div>
-                    <p class="text-xs text-zinc-500">${email}</p>
-                    <p class="text-lg font-bold text-[#00e38c]">R$ ${db.usuarios[email].saldo.toFixed(2)}</p>
-                </div>
-                <button onclick="addSaldo('${email}')" class="bg-white text-black px-4 py-2 rounded-lg font-bold text-xs">+ ADD R$ 10</button>
+        for (let u in db.usuarios) {
+            html += `<div class="bg-zinc-900 p-5 rounded-2xl flex justify-between items-center border border-white/5">
+                <div><p class="text-[10px] text-zinc-500">${u}</p><p class="text-lg font-bold">R$ ${db.usuarios[u].saldo.toFixed(2)}</p></div>
+                <button onclick="add('${u}')" class="bg-[#00e38c] text-black px-4 py-2 rounded-xl font-black text-[10px]">+ R$ 10</button>
             </div>`;
         }
-        document.getElementById('lista-usuarios').innerHTML = html;
+        document.getElementById('lista').innerHTML = html;
     }
 
-    async function addSaldo(email) {
+    async function add(u) {
         const res = await fetch(DB_URL, { headers: { "X-Master-Key": KEY }});
         const data = await res.json();
         let db = data.record;
-        
-        db.usuarios[email].saldo += 10;
-        
+        db.usuarios[u].saldo += 10;
         await fetch(DB_URL, {
             method: 'PUT', headers: { "Content-Type": "application/json", "X-Master-Key": KEY },
             body: JSON.stringify(db)
         });
-        alert("Saldo adicionado!");
         carregar();
     }
     carregar();
