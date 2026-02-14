@@ -6,45 +6,38 @@
     <title>MF-PAY | Acesso</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-[#0b0e11] text-white flex items-center justify-center min-h-screen px-4 font-sans">
-    <div class="bg-[#161a1e] p-8 rounded-[40px] w-full max-w-sm border border-white/5 shadow-2xl">
-        <h1 class="text-3xl font-black italic text-center mb-8 text-[#00e38c]">MF-PAY</h1>
-        
+<body class="bg-[#0b0e11] text-white flex items-center justify-center min-h-screen font-sans px-4">
+    <div class="bg-[#161a1e] p-8 rounded-[40px] w-full max-w-sm border border-white/5 shadow-2xl text-center">
+        <h1 class="text-3xl font-black italic mb-8 text-[#00e38c]">MF-PAY</h1>
         <div class="flex justify-center gap-6 mb-8 text-[10px] font-bold uppercase tracking-widest">
             <button id="t-login" onclick="setMode('login')" class="text-[#00e38c] border-b-2 border-[#00e38c] pb-2">Entrar</button>
             <button id="t-reg" onclick="setMode('reg')" class="text-zinc-500 pb-2">Cadastrar</button>
         </div>
-
-        <div class="space-y-4">
-            <input type="email" id="email" placeholder="Seu e-mail" class="w-full p-4 rounded-2xl bg-[#0b0e11] border border-white/10 outline-none focus:border-[#00e38c]">
-            <input type="password" id="pin" placeholder="PIN de 6 dígitos" class="w-full p-4 rounded-2xl bg-[#0b0e11] border border-white/10 outline-none text-center font-bold tracking-widest focus:border-[#00e38c]">
-            <button onclick="autenticar()" id="btn-auth" class="w-full py-5 bg-[#00e38c] text-black font-black rounded-2xl uppercase italic text-xs mt-4">Acessar Sistema</button>
+        <div class="space-y-4 text-left">
+            <input type="email" id="email" placeholder="E-mail" class="w-full p-4 rounded-2xl bg-[#0b0e11] border border-white/10 outline-none focus:border-[#00e38c]">
+            <input type="password" id="pin" placeholder="PIN de 6 dígitos" class="w-full p-4 rounded-2xl bg-[#0b0e11] border border-white/10 outline-none text-center font-bold tracking-widest">
+            <button onclick="autenticar()" id="btn-auth" class="w-full py-5 bg-[#00e38c] text-black font-black rounded-2xl uppercase italic text-xs mt-4 hover:scale-105 transition">Acessar Sistema</button>
         </div>
     </div>
-
 <script>
     const DB_URL = "https://api.jsonbin.io/v3/b/65cd2a96dc74654018b36873";
-    const KEY = "$2a$10$ExemploChaveMestreMFPAY2026"; 
+    const KEY = "$2a$10$BH1hrj8d.ptln54HlH7u/Oo2rbwnadiFrQZDHfXHEOSy2nwtswFMG"; 
     let mode = 'login';
-
     function setMode(m) {
         mode = m;
         document.getElementById('t-login').className = m === 'login' ? 'text-[#00e38c] border-b-2 border-[#00e38c] pb-2' : 'text-zinc-500 pb-2';
         document.getElementById('t-reg').className = m === 'reg' ? 'text-[#00e38c] border-b-2 border-[#00e38c] pb-2' : 'text-zinc-500 pb-2';
         document.getElementById('btn-auth').innerText = m === 'login' ? 'Acessar Sistema' : 'Criar Conta Agora';
     }
-
     async function autenticar() {
         const e = document.getElementById('email').value.trim().toLowerCase();
         const p = document.getElementById('pin').value.trim();
         if(!e || !p) return alert("Preencha tudo!");
-
         try {
             const res = await fetch(DB_URL, { headers: { "X-Master-Key": KEY }});
             const data = await res.json();
             let db = data.record;
             if(!db.usuarios) db.usuarios = {};
-
             if (mode === 'login') {
                 if (db.usuarios[e] && db.usuarios[e].pin === p) {
                     localStorage.setItem('mf_user', e);
@@ -54,10 +47,7 @@
                 if (db.usuarios[e]) { alert("E-mail já cadastrado!"); }
                 else {
                     db.usuarios[e] = { saldo: 0, pin: p };
-                    await fetch(DB_URL, {
-                        method: 'PUT', headers: { "Content-Type": "application/json", "X-Master-Key": KEY },
-                        body: JSON.stringify(db)
-                    });
+                    await fetch(DB_URL, { method: 'PUT', headers: { "Content-Type": "application/json", "X-Master-Key": KEY }, body: JSON.stringify(db) });
                     localStorage.setItem('mf_user', e);
                     window.location.href = 'index.html';
                 }
