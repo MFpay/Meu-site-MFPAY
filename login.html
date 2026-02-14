@@ -3,104 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MF-CLOUD | Autenticação</title>
+    <title>MF-PAY | Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { background: #0b0e11; color: #fff; font-family: 'Inter', sans-serif; }
-        .glass-card { background: #161a1e; border: 1px solid rgba(0, 227, 140, 0.1); border-radius: 40px; }
-        input { background: #0b0e11 !important; border: 1px solid #232a31 !important; color: #fff !important; outline: none; }
-        .btn-primary { background: #00e38c; color: #000; font-weight: 900; }
+        body { background: #0b0e11; color: white; font-family: sans-serif; }
+        input { background: #161a1e !important; border: 1px solid #232a31 !important; color: white !important; }
         .tab-active { color: #00e38c; border-bottom: 2px solid #00e38c; }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen px-4">
-
-    <div class="glass-card p-10 w-full max-w-[420px] shadow-2xl">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-black italic tracking-tighter uppercase">MF<span class="text-[#00e38c]">CLOUD</span></h1>
-            <div class="flex justify-center gap-6 mt-6 text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                <button id="tab-login" onclick="switchTab('login')" class="pb-2 tab-active">Entrar</button>
-                <button id="tab-register" onclick="switchTab('register')" class="pb-2">Cadastrar</button>
-            </div>
-        </div>
+    <div class="bg-[#161a1e] p-8 rounded-[40px] w-full max-w-sm border border-white/5 shadow-2xl">
+        <h1 class="text-3xl font-black italic text-center mb-8 text-[#00e38c]">MF-PAY</h1>
         
-        <div class="space-y-5">
-            <input type="email" id="email" placeholder="Seu e-mail" class="w-full p-4 rounded-2xl text-sm">
-            <input type="password" id="pass" placeholder="PIN (Senha)" class="w-full p-4 rounded-2xl text-sm font-bold tracking-[0.5em]">
-            
-            <button onclick="autenticar()" id="mainBtn" class="btn-primary w-full py-5 rounded-2xl mt-4 uppercase text-xs tracking-widest italic">
-                Entrar no Sistema
-            </button>
+        <div class="flex justify-center gap-6 mb-8 text-[10px] font-bold uppercase tracking-widest">
+            <button id="t-login" onclick="setMode('login')" class="tab-active pb-2">Entrar</button>
+            <button id="t-reg" onclick="setMode('reg')" class="text-zinc-500 pb-2">Cadastrar</button>
+        </div>
+
+        <div class="space-y-4">
+            <input type="email" id="email" placeholder="Seu e-mail" class="w-full p-4 rounded-2xl outline-none">
+            <input type="password" id="pin" placeholder="PIN de 6 dígitos" class="w-full p-4 rounded-2xl outline-none text-center font-bold tracking-widest">
+            <button onclick="autenticar()" id="btn-auth" class="w-full py-5 bg-[#00e38c] text-black font-black rounded-2xl uppercase italic text-xs mt-4">Acessar Sistema</button>
         </div>
     </div>
 
 <script>
-    lucide.createIcons();
-    
-    // ESTE É O SEU BANCO DE DATA - VOU USAR UMA VERSÃO MAIS ESTÁVEL AGORA
-    const CLOUD_DB_URL = "https://api.jsonbin.io/v3/b/65cd2a96dc74654018b36873"; 
-    const MASTER_KEY = "$2a$10$ExemploChaveMestreMFPAY2026"; 
-    
+    const DB_URL = "https://api.jsonbin.io/v3/b/65cd2a96dc74654018b36873";
+    const KEY = "$2a$10$ExemploChaveMestreMFPAY2026";
     let mode = 'login';
 
-    function switchTab(newMode) {
-        mode = newMode;
-        document.getElementById('tab-login').classList.toggle('tab-active', mode === 'login');
-        document.getElementById('tab-register').classList.toggle('tab-active', mode === 'register');
-        document.getElementById('mainBtn').innerText = mode === 'login' ? 'Entrar no Sistema' : 'Criar Conta Grátis';
+    function setMode(m) {
+        mode = m;
+        document.getElementById('t-login').className = m === 'login' ? 'tab-active pb-2' : 'text-zinc-500 pb-2';
+        document.getElementById('t-reg').className = m === 'reg' ? 'tab-active pb-2' : 'text-zinc-500 pb-2';
+        document.getElementById('btn-auth').innerText = m === 'login' ? 'Acessar Sistema' : 'Criar Conta Agora';
     }
 
     async function autenticar() {
-        const e = document.getElementById('email').value.toLowerCase().trim();
-        const p = document.getElementById('pass').value.trim();
-        const btn = document.getElementById('mainBtn');
+        const e = document.getElementById('email').value.trim().toLowerCase();
+        const p = document.getElementById('pin').value.trim();
+        if(!e || !p) return alert("Preencha tudo!");
 
-        if(!e || !p) return alert("Preencha os campos!");
-
-        btn.innerText = "CARREGANDO...";
+        const btn = document.getElementById('btn-auth');
+        btn.innerText = "SINCROZINANDO...";
         btn.disabled = true;
 
         try {
-            const res = await fetch(CLOUD_DB_URL, { headers: { "X-Master-Key": MASTER_KEY } });
-            const json = await res.json();
-            let db = json.record;
-
-            // PROTEÇÃO: Se o banco estiver bugado ou vazio, inicializa ele
-            if (!db || !db.usuarios) {
-                db = { usuarios: {}, mensagens: [] };
-            }
+            const res = await fetch(DB_URL, { headers: { "X-Master-Key": KEY }});
+            const data = await res.json();
+            let db = data.record;
 
             if (mode === 'login') {
                 if (db.usuarios[e] && db.usuarios[e].pin === p) {
                     localStorage.setItem('mf_user', e);
-                    window.location.href = 'index.html';
-                } else {
-                    alert("E-mail ou PIN incorretos!");
-                }
+                    window.location.href = (e === 'admin@mf.com') ? 'admin.html' : 'index.html';
+                } else { alert("E-mail ou PIN incorretos!"); }
             } else {
-                if (db.usuarios[e]) {
-                    alert("E-mail já cadastrado!");
-                } else {
-                    db.usuarios[e] = { saldo: 0, pin: p, cartas: [] };
-                    // SALVA O NOVO USUÁRIO NA NUVEM
-                    await fetch(CLOUD_DB_URL, {
-                        method: 'PUT',
-                        headers: { "Content-Type": "application/json", "X-Master-Key": MASTER_KEY },
+                if (db.usuarios[e]) { alert("E-mail já cadastrado!"); }
+                else {
+                    db.usuarios[e] = { saldo: 0, pin: p, historico: [] };
+                    await fetch(DB_URL, {
+                        method: 'PUT', headers: { "Content-Type": "application/json", "X-Master-Key": KEY },
                         body: JSON.stringify(db)
                     });
                     localStorage.setItem('mf_user', e);
-                    alert("Conta criada! Bem-vindo.");
                     window.location.href = 'index.html';
                 }
             }
-        } catch (err) {
-            console.error(err);
-            alert("Erro ao conectar com a nuvem. Verifique sua internet.");
-        } finally {
-            btn.disabled = false;
-            btn.innerText = mode === 'login' ? 'Entrar no Sistema' : 'Criar Conta Grátis';
-        }
+        } catch (err) { alert("Erro de conexão com o banco!"); }
+        btn.disabled = false;
+        btn.innerText = mode === 'login' ? 'Acessar Sistema' : 'Criar Conta Agora';
     }
 </script>
 </body>
